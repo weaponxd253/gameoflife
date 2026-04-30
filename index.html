@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Game of Life</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+</head>
+<body>
+
+  <!-- Save/Load Banner (injected by JS when a save exists) -->
+  <div id="save-banner" class="save-banner hidden">
+    <span>📂 Saved game found!</span>
+    <button id="loadBtn">Continue</button>
+    <button id="newGameBtn">New Game</button>
+  </div>
+
+  <!-- Status Jumbotron -->
+  <div class="jumbotron">
+    <i id="themeIcon" class="fas fa-moon"></i>
+
+    <!-- Age badge -->
+    <div class="age-badge">Age <span id="age">18</span></div>
+
+    <h2>💰 Financial Status</h2>
+    <p>
+      <strong>Salary:</strong> $<span id="salary">0</span> &nbsp;|&nbsp;
+      <strong>Savings:</strong> $<span id="savings">0</span> &nbsp;|&nbsp;
+      <strong>Debt:</strong> $<span id="debt">0</span>
+    </p>
+
+    <h2>🌿 Well-Being</h2>
+    <div class="stat-bars">
+      <div class="stat-bar-row">
+        <span class="stat-label"><strong>Health</strong> <span id="health">100</span>/100</span>
+        <div class="stat-bar-track">
+          <div class="stat-bar-fill health-fill" id="health-bar" style="width:100%"></div>
+        </div>
+      </div>
+      <div class="stat-bar-row">
+        <span class="stat-label"><strong>Happiness</strong> <span id="happiness">100</span>/100</span>
+        <div class="stat-bar-track">
+          <div class="stat-bar-fill happiness-fill" id="happiness-bar" style="width:100%"></div>
+        </div>
+      </div>
+    </div>
+
+    <h2>💼 Career &amp; Life</h2>
+    <p>
+      <strong>Career:</strong> <span id="career">Unemployed</span> &nbsp;|&nbsp;
+      <strong>Status:</strong> <span id="marital-status">Single</span> &nbsp;|&nbsp;
+      <strong>Dependents:</strong> <span id="dependents">0</span>
+    </p>
+  </div>
+
+  <!-- Stat change flash panel (populated by JS) -->
+  <div id="stat-diff-panel" class="stat-diff-panel hidden"></div>
+
+  <!-- Life Event Box -->
+  <div id="life-event-box">
+    <h3>⚡ Life Event!</h3>
+    <p id="life-event-text"></p>
+  </div>
+
+  <!-- Main Game Container -->
+  <div class="game-container">
+    <div class="life-container">
+      <span class="letter purple">L</span>
+      <span class="letter blue">I</span>
+      <span class="letter green">F</span>
+      <span class="letter yellow">E</span>
+    </div>
+
+    <p id="question">Choose your path:</p>
+    <div id="choices"></div>
+    <button id="nextBtn" disabled>Next →</button>
+    <p id="progress"></p>
+  </div>
+
+  <!-- JS tooltip element (moved/shown by JS) -->
+  <div id="choice-tooltip" class="choice-tooltip hidden"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

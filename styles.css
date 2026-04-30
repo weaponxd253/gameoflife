@@ -1,0 +1,518 @@
+/* ─── Theme Variables ─────────────────────────────────────────────────────── */
+:root {
+  --background-color: #d7a9c8;
+  --container-bg: #1a1a2e;
+  --text-color: #333333;
+  --primary-button-bg: #02070d;
+  --primary-button-text: #f0e0e0;
+  --choice-border: #007bff;
+  --choice-bg: white;
+  --choice-text: black;
+  --selected-choice-bg: #007bff;
+  --selected-choice-text: white;
+  --jumbotron-bg: #1e2a45;
+  --jumbotron-text: #e8eaf6;
+  --wellbeing-bg: #c8e6c9;
+  --life-event-bg: #ffe599;
+  --life-event-text: #6d4c41;
+  --life-event-border: #dc3545;
+  --stat-bar-track: rgba(255,255,255,0.15);
+  --health-color: #4caf50;
+  --happiness-color: #ff9800;
+  --save-banner-bg: #1565c0;
+  --locked-choice-bg: #2a2a2a;
+  --locked-choice-text: #666;
+}
+
+.dark-theme {
+  --background-color: #2e1a25;
+  --container-bg: #1e1e1e;
+  --text-color: #e0e0e0;
+  --primary-button-bg: #0056b3;
+  --primary-button-text: #ffffff;
+  --choice-border: #88c0d0;
+  --choice-bg: #2e2e2e;
+  --choice-text: #e0e0e0;
+  --selected-choice-bg: #81a1c1;
+  --selected-choice-text: white;
+  --jumbotron-bg: #1e1e2f;
+  --jumbotron-text: #e8eaf6;
+  --wellbeing-bg: #204e42;
+  --life-event-bg: #5d2e20;
+  --life-event-text: #ffccbc;
+  --life-event-border: #e57373;
+  --stat-bar-track: rgba(255,255,255,0.1);
+  --locked-choice-bg: #1a1a1a;
+  --locked-choice-text: #555;
+}
+
+/* ─── Base ────────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  margin: 0;
+  transition: background-color 0.5s ease-in-out;
+}
+
+/* ─── Save Banner ─────────────────────────────────────────────────────────── */
+.save-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--save-banner-bg);
+  color: white;
+  padding: 10px 20px;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.save-banner button {
+  padding: 6px 14px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 2px solid white;
+  cursor: pointer;
+  background: transparent;
+  color: white;
+  transition: background 0.2s;
+}
+
+.save-banner button:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* ─── Jumbotron ───────────────────────────────────────────────────────────── */
+.jumbotron {
+  background-color: var(--jumbotron-bg);
+  padding: 20px 30px 24px;
+  text-align: center;
+  position: relative;
+  color: var(--jumbotron-text);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.jumbotron h2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 18px;
+  margin: 14px 0 6px;
+  color: var(--jumbotron-text);
+}
+
+.jumbotron p {
+  font-size: 15px;
+  margin: 4px 0 8px;
+  color: var(--jumbotron-text);
+  opacity: 0.92;
+}
+
+/* Age Badge */
+.age-badge {
+  position: absolute;
+  top: 14px;
+  right: 20px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--jumbotron-text);
+  letter-spacing: 0.5px;
+}
+
+/* Theme Icon */
+#themeIcon {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  font-size: 22px;
+  cursor: pointer;
+  transition: transform 0.5s ease-in-out, color 0.3s;
+  color: #b39ddb;
+}
+
+.sun-animation  { color: #ffd700 !important; }
+.moon-animation { color: #b39ddb !important; }
+
+/* ─── Progress Bars ───────────────────────────────────────────────────────── */
+.stat-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 480px;
+  margin: 8px auto 6px;
+}
+
+.stat-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stat-label {
+  min-width: 140px;
+  text-align: right;
+  font-size: 14px;
+  color: var(--jumbotron-text);
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.stat-bar-track {
+  flex: 1;
+  height: 10px;
+  background: var(--stat-bar-track);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.health-fill    { background: linear-gradient(90deg, #388e3c, #81c784); }
+.happiness-fill { background: linear-gradient(90deg, #e65100, #ffb74d); }
+
+/* ─── Stat Diff Panel ─────────────────────────────────────────────────────── */
+.stat-diff-panel {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: rgba(0,0,0,0.55);
+  min-height: 38px;
+  transition: opacity 0.3s;
+}
+
+.stat-diff-panel.hidden { display: none; }
+
+.diff-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.diff-badge.pos { background: rgba(76,175,80,0.25); color: #a5d6a7; border: 1px solid #388e3c; }
+.diff-badge.neg { background: rgba(244,67,54,0.2);  color: #ef9a9a; border: 1px solid #c62828; }
+
+/* ─── Life Event Box ──────────────────────────────────────────────────────── */
+#life-event-box {
+  background-color: var(--life-event-bg);
+  border: 3px solid var(--life-event-border);
+  color: var(--life-event-text);
+  padding: 15px 20px;
+  text-align: center;
+  font-size: 17px;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  display: none;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+#life-event-box h3 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+
+/* ─── Game Container ──────────────────────────────────────────────────────── */
+.game-container {
+  width: 55%;
+  max-width: 720px;
+  padding: 24px 30px 32px;
+  margin: 18px auto;
+  background: var(--container-bg);
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  color: var(--jumbotron-text);
+}
+
+@media screen and (max-width: 768px) {
+  .game-container { width: 95%; padding: 16px; }
+  .stat-label { min-width: 110px; font-size: 13px; }
+}
+
+/* ─── LIFE Title ──────────────────────────────────────────────────────────── */
+.life-container {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.letter {
+  font-size: 48px;
+  font-weight: bold;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  box-shadow: 3px 3px 8px rgba(0,0,0,0.4);
+  transition: transform 0.3s ease-in-out;
+}
+
+.letter:hover { transform: translateY(-5px); }
+
+.purple { background-color: #b276b2; }
+.blue   { background-color: #7dbbe6; }
+.green  { background-color: #85c65f; }
+.yellow { background-color: #f4c542; }
+
+/* ─── Question ────────────────────────────────────────────────────────────── */
+#question {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--jumbotron-text);
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+#progress {
+  font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  margin-top: 14px;
+}
+
+/* ─── Choices ─────────────────────────────────────────────────────────────── */
+#choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.choice {
+  background-color: var(--choice-bg);
+  color: var(--choice-text);
+  border: 2px solid var(--choice-border);
+  padding: 12px 16px;
+  font-size: 15px;
+  cursor: pointer;
+  border-radius: 8px;
+  text-align: left;
+  transition: background 0.25s, color 0.25s, transform 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+
+.choice:hover:not(:disabled) {
+  background-color: var(--selected-choice-bg);
+  color: var(--selected-choice-text);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.choice.selected {
+  background-color: var(--selected-choice-bg);
+  color: var(--selected-choice-text);
+  border-color: var(--selected-choice-bg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Locked / gated choices */
+.choice-locked {
+  background-color: var(--locked-choice-bg) !important;
+  color: var(--locked-choice-text) !important;
+  border-color: #444 !important;
+  cursor: not-allowed !important;
+  opacity: 0.55;
+  transform: none !important;
+}
+
+.choice-locked .lock-icon {
+  margin-right: 6px;
+  font-size: 13px;
+}
+
+/* ─── Tooltip ─────────────────────────────────────────────────────────────── */
+.choice-tooltip {
+  position: fixed;
+  z-index: 9999;
+  background: rgba(10, 10, 20, 0.95);
+  color: #e8eaf6;
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  transform: translateX(-50%);
+  transition: opacity 0.15s;
+}
+
+.choice-tooltip.hidden { display: none; }
+
+.tooltip-item { display: inline-block; margin: 0 4px; }
+.tooltip-pos  { color: #a5d6a7; }
+.tooltip-neg  { color: #ef9a9a; }
+.tooltip-neu  { color: #b0bec5; }
+
+/* ─── Next Button ─────────────────────────────────────────────────────────── */
+#nextBtn {
+  background-color: var(--primary-button-bg);
+  color: var(--primary-button-text);
+  border: 2px solid var(--choice-border);
+  padding: 10px 28px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s, box-shadow 0.3s, transform 0.15s;
+  font-weight: bold;
+  letter-spacing: 0.3px;
+}
+
+#nextBtn:hover:not(:disabled) {
+  background-color: var(--selected-choice-bg);
+  color: var(--selected-choice-text);
+  box-shadow: 0 4px 14px rgba(0,123,255,0.4);
+  transform: translateY(-1px);
+}
+
+#nextBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.dark-theme #nextBtn:hover:not(:disabled) {
+  box-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+/* ─── Summary ─────────────────────────────────────────────────────────────── */
+.summary-container {
+  max-width: 620px;
+  width: 92%;
+  margin: 20px auto;
+  padding: 28px 24px;
+  background: rgba(0,0,0,0.75);
+  border-radius: 14px;
+  text-align: center;
+  color: #e8eaf6;
+}
+
+.summary-container h1 { margin-bottom: 6px; font-size: 28px; }
+.summary-container h2 { margin-bottom: 18px; font-size: 20px; color: #fff; }
+
+/* Net worth row */
+.net-worth-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  font-size: 18px;
+}
+
+.nw-grade {
+  font-size: 28px;
+  font-weight: bold;
+  padding: 4px 14px;
+  border-radius: 8px;
+  line-height: 1;
+}
+
+/* Summary grid — two columns */
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 20px;
+  margin: 12px 0 18px;
+  font-size: 15px;
+  text-align: left;
+}
+
+.summary-grid p {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/* Career gets its own full-width row */
+.summary-career {
+  grid-column: 1 / -1;
+  font-size: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 4px;
+}
+
+@media screen and (max-width: 600px) {
+  .summary-grid { grid-template-columns: 1fr; }
+  .summary-career { grid-column: 1; }
+}
+
+/* Life events list */
+.life-events-list {
+  background: rgba(0,0,0,0.2);
+  padding: 14px 16px;
+  border-radius: 8px;
+  text-align: left;
+  margin-top: 6px;
+}
+
+.life-events-list h3 { margin: 0 0 10px; font-size: 16px; }
+
+.life-events-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.life-events-list li {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.life-events-list li.positive { color: #a5d6a7; font-weight: bold; }
+.life-events-list li.negative { color: #ef9a9a; font-weight: bold; }
+
+/* Play Again */
+#playAgainBtn {
+  display: block;
+  margin: 22px auto 0;
+  padding: 12px 28px;
+  font-size: 17px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #1565c0;
+  color: white;
+  border: none;
+  transition: background 0.25s, transform 0.15s;
+  font-weight: bold;
+}
+
+#playAgainBtn:hover {
+  background: #1976d2;
+  transform: translateY(-2px);
+}
+
+/* ─── Transitions ─────────────────────────────────────────────────────────── */
+body, .jumbotron { transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out; }
+
+/* ─── Utility ─────────────────────────────────────────────────────────────── */
+.hidden { display: none !important; }
