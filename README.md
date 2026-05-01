@@ -1,10 +1,10 @@
-# 🎮 A Game of Life
+# A Game of Life
 
 A browser-based life simulation game built with vanilla HTML, CSS, and JavaScript. Players navigate major life decisions — education, career, relationships, housing, and retirement — while managing finances, health, and happiness across a simulated lifetime.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ├── index.html    # Game markup, jumbotron, choice container, tooltip element
@@ -16,7 +16,7 @@ No build step, no framework, no package manager. Open `index.html` in a browser 
 
 ---
 
-## 🕹️ How to Play
+## How to Play
 
 1. Open `index.html` in any modern browser
 2. Read the scenario at the top of each step
@@ -27,7 +27,7 @@ No build step, no framework, no package manager. Open `index.html` in a browser 
 
 ---
 
-## ✨ Features
+## Features
 
 ### Core Gameplay
 - **15 branching steps** spanning education, career, marriage, children, housing, cars, mid-life pivots, and retirement
@@ -89,7 +89,7 @@ Toggle via the icon in the top-left of the dashboard. Preference is saved to `lo
 
 ---
 
-## 🏆 Titles
+##  Titles
 
 Your end-of-game title is determined by your final stats in priority order:
 
@@ -109,7 +109,7 @@ Your end-of-game title is determined by your final stats in priority order:
 
 ---
 
-## 🧰 Dependencies
+## Dependencies
 
 Loaded via CDN — no local installation required:
 
@@ -121,7 +121,7 @@ Loaded via CDN — no local installation required:
 
 ---
 
-## 🗺️ Question Flow
+## Question Flow
 
 ```
 Q0  Education choice
@@ -144,7 +144,7 @@ Q0  Education choice
 
 ---
 
-## 🔧 Extending the Game
+## Extending the Game
 
 ### Adding a Question
 1. Add a new object to the `questions` array in `script.js`
