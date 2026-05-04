@@ -1,5 +1,7 @@
 # A Game of Life
 
+Live preview: https://weaponxd253.github.io/gameoflife/
+
 A browser-based life simulation game built with vanilla HTML, CSS, and JavaScript. Players navigate major life decisions — education, career, relationships, housing, and retirement — while managing finances, health, and happiness across a simulated lifetime.
 
 ---
