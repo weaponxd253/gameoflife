@@ -3,9 +3,11 @@ let salary = 0, savings = 0, debt = 0;
 let health = 100, happiness = 100;
 let dependents = 0, age = 18;
 let career = "Unemployed", maritalStatus = "Single";
+let lifePath = "Undecided";
 let lifeEventHistory = [];
 let currentQuestionIndex = 0;
 let selectedChoice = null;
+let decisionsMade = 0;
 
 // Life event cooldown tracking
 let questionsSinceLastEvent = 0;
@@ -30,160 +32,226 @@ const lifeEvents = [
 // ─── Questions ─────────────────────────────────────────────────────────────
 // ageYears: how many years of life this step represents
 // requires: { stat: minValue } — choice is locked/disabled if not met
+const pathGrowthRoutes = {
+  College: "college_growth",
+  "Early Career": "early_career_growth",
+  Trade: "trade_growth",
+  Business: "business_growth"
+};
+
 const questions = [
   {
+    id: "start",
     text: "🎓 You're 18. Where do you go from here?",
     ageYears: 0,
     choices: [
-      { text: "📚 Go to College",          next: 1, debt: 30000,  happiness: -10, health: -5,  ageAdd: 4 },
-      { text: "💼 Start a Career",          next: 2, salary: 30000, happiness: 5,               ageAdd: 1 },
-      { text: "🔧 Attend Trade School",     next: 3, salary: 40000, debt: 10000,  happiness: 3, ageAdd: 2 },
-      { text: "🚀 Start a Business",        next: 4, salary: 25000, debt: 5000,   happiness: -5, health: -10, ageAdd: 1 }
+      { text: "📚 Go to College",          next: "college_career",      path: "College",      debt: 30000,  happiness: -10, health: -5,  ageAdd: 4 },
+      { text: "💼 Start a Career",          next: "early_career_start",  path: "Early Career", salary: 30000, happiness: 5,               ageAdd: 1 },
+      { text: "🔧 Attend Trade School",     next: "trade_career",        path: "Trade",        salary: 40000, debt: 10000,  happiness: 3, ageAdd: 2 },
+      { text: "🚀 Start a Business",        next: "business_focus",      path: "Business",     salary: 25000, debt: 5000,   happiness: -5, health: -10, ageAdd: 1 }
     ]
   },
   {
+    id: "college_career",
     text: "🎓 You finished college! Pick your career path:",
     ageYears: 0,
     choices: [
-      { text: "🩺 Doctor (High salary, high debt)",         next: 5, salary: 120000, debt: 200000, action: () => career = "Doctor" },
-      { text: "🛠 Engineer (Good salary, moderate debt)",   next: 5, salary: 90000,  debt: 50000,  action: () => career = "Engineer" },
-      { text: "⚖️ Lawyer (High salary, very high debt)",   next: 5, salary: 110000, debt: 180000, action: () => career = "Lawyer" },
-      { text: "🎓 Professor (Stable income, low debt)",     next: 5, salary: 70000,  debt: 40000,  action: () => career = "Professor" }
+      { text: "🩺 Doctor (High salary, high debt)",         next: "work_life_balance", salary: 120000, debt: 200000, action: () => career = "Doctor" },
+      { text: "🛠 Engineer (Good salary, moderate debt)",   next: "work_life_balance", salary: 90000,  debt: 50000,  action: () => career = "Engineer" },
+      { text: "⚖️ Lawyer (High salary, very high debt)",   next: "work_life_balance", salary: 110000, debt: 180000, action: () => career = "Lawyer" },
+      { text: "🎓 Professor (Stable income, low debt)",     next: "work_life_balance", salary: 70000,  debt: 40000,  action: () => career = "Professor" }
     ]
   },
   {
+    id: "early_career_start",
     text: "🚀 You skipped college! Choose a career path:",
     ageYears: 0,
     choices: [
-      { text: "🏬 Retail Manager",       next: 5, salary: 45000, happiness: 5,  action: () => career = "Retail Manager" },
-      { text: "👷 Construction Worker",  next: 5, salary: 50000, happiness: 3,  health: -5, action: () => career = "Construction Worker" },
-      { text: "🚚 Delivery Driver",      next: 5, salary: 35000, happiness: 8,  action: () => career = "Delivery Driver" },
-      { text: "🏭 Factory Worker",       next: 5, salary: 40000, happiness: 0,  health: -3, action: () => career = "Factory Worker" }
+      { text: "🏬 Retail Manager",       next: "work_life_balance", salary: 45000, happiness: 5,  action: () => career = "Retail Manager" },
+      { text: "👷 Construction Worker",  next: "work_life_balance", salary: 50000, happiness: 3,  health: -5, action: () => career = "Construction Worker" },
+      { text: "🚚 Delivery Driver",      next: "work_life_balance", salary: 35000, happiness: 8,  action: () => career = "Delivery Driver" },
+      { text: "🏭 Factory Worker",       next: "work_life_balance", salary: 40000, happiness: 0,  health: -3, action: () => career = "Factory Worker" }
     ]
   },
   {
+    id: "trade_career",
     text: "🔧 You completed trade school! Choose a career path:",
     ageYears: 0,
     choices: [
-      { text: "⚡ Electrician",        next: 5, salary: 60000, happiness: 10, action: () => career = "Electrician" },
-      { text: "🚰 Plumber",            next: 5, salary: 65000, happiness: 8,  health: -5, action: () => career = "Plumber" },
-      { text: "❄️ HVAC Technician",    next: 5, salary: 55000, happiness: 5,  action: () => career = "HVAC Technician" },
-      { text: "🛠 Auto Mechanic",      next: 5, salary: 50000, happiness: 7,  health: -3, action: () => career = "Auto Mechanic" }
+      { text: "⚡ Electrician",        next: "work_life_balance", salary: 60000, happiness: 10, action: () => career = "Electrician" },
+      { text: "🚰 Plumber",            next: "work_life_balance", salary: 65000, happiness: 8,  health: -5, action: () => career = "Plumber" },
+      { text: "❄️ HVAC Technician",    next: "work_life_balance", salary: 55000, happiness: 5,  action: () => career = "HVAC Technician" },
+      { text: "🛠 Auto Mechanic",      next: "work_life_balance", salary: 50000, happiness: 7,  health: -3, action: () => career = "Auto Mechanic" }
     ]
   },
   {
+    id: "business_focus",
     text: "🚀 You started a business! Choose your focus:",
     ageYears: 0,
     choices: [
-      { text: "💻 Freelance Web Developer",  next: 5, salary: 70000, debt: 5000,  happiness: 15, action: () => career = "Freelance Web Developer" },
-      { text: "🌿 Landscaping Business",     next: 5, salary: 60000, debt: 10000, happiness: 10, health: -5, action: () => career = "Landscaper" },
-      { text: "🍔 Food Truck Owner",         next: 5, salary: 75000, debt: 30000, happiness: 12, action: () => career = "Food Truck Owner" },
-      { text: "🛒 E-commerce Store",         next: 5, salary: 65000, debt: 20000, happiness: 10, action: () => career = "E-commerce Entrepreneur" }
+      { text: "💻 Freelance Web Developer",  next: "work_life_balance", salary: 70000, debt: 5000,  happiness: 15, action: () => career = "Freelance Web Developer" },
+      { text: "🌿 Landscaping Business",     next: "work_life_balance", salary: 60000, debt: 10000, happiness: 10, health: -5, action: () => career = "Landscaper" },
+      { text: "🍔 Food Truck Owner",         next: "work_life_balance", salary: 75000, debt: 30000, happiness: 12, action: () => career = "Food Truck Owner" },
+      { text: "🛒 E-commerce Store",         next: "work_life_balance", salary: 65000, debt: 20000, happiness: 10, action: () => career = "E-commerce Entrepreneur" }
     ]
   },
   {
+    id: "work_life_balance",
     text: "⚖️ You're settled into your job. How do you approach work-life balance?",
     ageYears: 4,
     choices: [
-      { text: "💼 Work extra hours for a raise",            next: 6, salary: 10000,  happiness: -15, health: -10 },
-      { text: "⚖️ Balance work & personal life",           next: 6, happiness: 10,  health: 5 },
-      { text: "🏖️ Take a relaxed job (less stress, lower pay)", next: 6, salary: -5000, happiness: 20, health: 10 }
+      { text: "💼 Work extra hours for a raise",                 next: "relationship", nextByPath: pathGrowthRoutes, salary: 10000,  happiness: -15, health: -10 },
+      { text: "⚖️ Balance work & personal life",                 next: "relationship", nextByPath: pathGrowthRoutes, happiness: 10,  health: 5 },
+      { text: "🏖️ Take a relaxed job (less stress, lower pay)",  next: "relationship", nextByPath: pathGrowthRoutes, salary: -5000, happiness: 20, health: 10 }
     ]
   },
   {
+    id: "college_growth",
+    pathOnly: "College",
+    text: "🎓 Your degree is opening doors. What do you focus on next?",
+    ageYears: 2,
+    choices: [
+      { text: "🤝 Build your professional network", next: "relationship", salary: 15000, happiness: 5 },
+      { text: "🏛️ Chase a prestigious role",       next: "relationship", salary: 30000, happiness: -10, health: -5 },
+      { text: "💸 Pay down student loans",          next: "relationship", debt: -25000, happiness: 5 }
+    ]
+  },
+  {
+    id: "early_career_growth",
+    pathOnly: "Early Career",
+    text: "💼 You built experience early. How do you grow from here?",
+    ageYears: 2,
+    choices: [
+      { text: "📣 Ask for a promotion",        next: "relationship", salary: 15000, happiness: -5 },
+      { text: "📚 Earn a certificate at night", next: "relationship", salary: 25000, debt: 8000, happiness: -8, health: -5 },
+      { text: "🏢 Switch companies",           next: "relationship", salary: 20000, happiness: 5 }
+    ]
+  },
+  {
+    id: "trade_growth",
+    pathOnly: "Trade",
+    text: "🔧 Your trade skills are paying off. What is next?",
+    ageYears: 2,
+    choices: [
+      { text: "📜 Get advanced certification",       next: "relationship", salary: 15000, debt: 5000 },
+      { text: "🧰 Take independent contracts",       next: "relationship", salary: 25000, savings: -10000, happiness: 10, health: -5 },
+      { text: "🛡️ Keep a steady union job",          next: "relationship", salary: 10000, happiness: 8, health: 5 }
+    ]
+  },
+  {
+    id: "business_growth",
+    pathOnly: "Business",
+    text: "🚀 Your business has traction. How do you scale it?",
+    ageYears: 2,
+    choices: [
+      { text: "📈 Reinvest aggressively",   next: "relationship", salary: 45000, savings: -30000, debt: 15000, happiness: -5 },
+      { text: "🧾 Stay lean and profitable", next: "relationship", salary: 15000, savings: 15000, happiness: 8 },
+      { text: "👥 Hire help",               next: "relationship", salary: 30000, savings: -20000, happiness: 12 }
+    ]
+  },
+  {
+    id: "relationship",
     text: "💞 You meet someone special! What do you do?",
     ageYears: 5,
     choices: [
       {
         text: "💍 Small, intimate wedding",
-        next: 7, savings: -10000, happiness: 20,
+        next: "kids", savings: -10000, happiness: 20,
         action: () => maritalStatus = "Married"
       },
       {
         text: "💒 Grand luxury wedding",
-        next: 7, savings: -50000, happiness: 30, salary: 30000,
+        next: "kids", savings: -50000, happiness: 30, salary: 30000,
         requires: { savings: 20000 },
         action: () => maritalStatus = "Married"
       },
-      { text: "🚶 Stay single for now", next: 8, happiness: -5 }
+      { text: "🚶 Stay single for now", next: "housing", happiness: -5 }
     ]
   },
   {
+    id: "kids",
     text: "👶 Thinking about having kids?",
     ageYears: 3,
     choices: [
-      { text: "👨‍👩‍👦 Have one child",      next: 8, happiness: 20, savings: -50000, action: () => dependents += 1 },
-      { text: "👨‍👩‍👧‍👦 Have multiple kids", next: 8, happiness: 30, savings: -100000, action: () => dependents += 2 },
-      { text: "💼 No kids — focus on career", next: 8, happiness: -5, salary: 10000 }
+      { text: "👨‍👩‍👦 Have one child",        next: "housing", happiness: 20, savings: -50000, action: () => dependents += 1 },
+      { text: "👨‍👩‍👧‍👦 Have multiple kids", next: "housing", happiness: 30, savings: -100000, action: () => dependents += 2 },
+      { text: "💼 No kids — focus on career", next: "housing", happiness: -5, salary: 10000 }
     ]
   },
   {
+    id: "housing",
     text: "🏡 You need a place to live. What do you do?",
     ageYears: 2,
     choices: [
-      { text: "🏠 Buy a modest house (-$100,000 debt)",      next: 9, debt: 100000, happiness: 15 },
-      { text: "🏢 Rent an apartment (no debt, flexible)",    next: 9, happiness: 5 },
+      { text: "🏠 Buy a modest house (-$100,000 debt)",      next: "transportation", debt: 100000, happiness: 15 },
+      { text: "🏢 Rent an apartment (no debt, flexible)",    next: "transportation", happiness: 5 },
       {
         text: "🏰 Invest in a luxury home (-$500,000 debt)",
-        next: 9, debt: 500000, happiness: 30,
+        next: "transportation", debt: 500000, happiness: 30,
         requires: { salary: 100000 }
       }
     ]
   },
   {
+    id: "transportation",
     text: "🚗 You need transportation. What do you buy?",
     ageYears: 1,
     choices: [
-      { text: "🚙 Cheap used car (-$10,000)",           next: 10, debt: 10000 },
-      { text: "🚗 Reliable mid-range car (-$30,000)",   next: 10, debt: 30000, happiness: 5 },
+      { text: "🚙 Cheap used car (-$10,000)",           next: "career_crossroads", debt: 10000 },
+      { text: "🚗 Reliable mid-range car (-$30,000)",   next: "career_crossroads", debt: 30000, happiness: 5 },
       {
         text: "🏎️ Luxury sports car (-$100,000)",
-        next: 10, debt: 100000, happiness: 20,
+        next: "career_crossroads", debt: 100000, happiness: 20,
         requires: { savings: 30000 }
       }
     ]
   },
   {
+    id: "career_crossroads",
     text: "🔄 Your career is at a crossroads. What do you do?",
     ageYears: 8,
     choices: [
-      { text: "💼 Stay at current job",                                  next: 14 },
-      { text: "🚀 Start a business (-$50,000 investment)",              next: 13, savings: -50000, salary: 100000, happiness: 15, requires: { savings: 50000 } },
-      { text: "🔄 Switch jobs for a better salary",                     next: 12, salary: 20000, happiness: -5 },
-      { text: "🎓 Go back to college (-$30,000 tuition)",              next: 11, savings: -30000, happiness: -5, debt: 30000, requires: { savings: 30000 } }
+      { text: "💼 Stay at current job",                                  next: "retirement" },
+      { text: "🚀 Start a business (-$50,000 investment)",               next: "business_model", path: "Business", savings: -50000, salary: 100000, happiness: 15, requires: { savings: 50000 } },
+      { text: "🔄 Switch jobs for a better salary",                      next: "career_switch", salary: 20000, happiness: -5 },
+      { text: "🎓 Go back to college (-$30,000 tuition)",                next: "degree_career", path: "College", savings: -30000, happiness: -5, debt: 30000, requires: { savings: 30000 } }
     ]
   },
   {
+    id: "degree_career",
     text: "🎓 You completed your degree! Choose a high-paying career:",
     ageYears: 4,
     choices: [
-      { text: "💻 Software Developer",           next: 14, salary: 95000,  debt: 50000, happiness: 10, action: () => career = "Software Developer" },
-      { text: "📊 Financial Analyst",            next: 14, salary: 85000,  debt: 40000, happiness: 8,  action: () => career = "Financial Analyst" },
-      { text: "📢 Marketing Manager",            next: 14, salary: 90000,  debt: 30000, happiness: 12, action: () => career = "Marketing Manager" },
-      { text: "💊 Pharmaceutical Sales Rep",     next: 14, salary: 100000, debt: 25000, happiness: 15, action: () => career = "Pharmaceutical Sales Rep" }
+      { text: "💻 Software Developer",           next: "retirement", salary: 95000,  debt: 50000, happiness: 10, action: () => career = "Software Developer" },
+      { text: "📊 Financial Analyst",            next: "retirement", salary: 85000,  debt: 40000, happiness: 8,  action: () => career = "Financial Analyst" },
+      { text: "📢 Marketing Manager",            next: "retirement", salary: 90000,  debt: 30000, happiness: 12, action: () => career = "Marketing Manager" },
+      { text: "💊 Pharmaceutical Sales Rep",     next: "retirement", salary: 100000, debt: 25000, happiness: 15, action: () => career = "Pharmaceutical Sales Rep" }
     ]
   },
   {
+    id: "career_switch",
     text: "🔄 You switched careers! Choose your new path:",
     ageYears: 2,
     choices: [
-      { text: "📊 Project Manager",             next: 14, salary: 85000, happiness: 10, action: () => career = "Project Manager" },
-      { text: "🏡 Real Estate Agent",           next: 14, salary: 75000, happiness: 12, action: () => career = "Real Estate Agent" },
-      { text: "🔒 Cybersecurity Specialist",    next: 14, salary: 90000, happiness: 8,  action: () => career = "Cybersecurity Specialist" },
-      { text: "🛠 Freelancer / Consultant",     next: 14, salary: 80000, happiness: 15, action: () => career = "Freelancer/Consultant" }
+      { text: "📊 Project Manager",             next: "retirement", salary: 85000, happiness: 10, action: () => career = "Project Manager" },
+      { text: "🏡 Real Estate Agent",           next: "retirement", salary: 75000, happiness: 12, action: () => career = "Real Estate Agent" },
+      { text: "🔒 Cybersecurity Specialist",    next: "retirement", salary: 90000, happiness: 8,  action: () => career = "Cybersecurity Specialist" },
+      { text: "🛠 Freelancer / Consultant",     next: "retirement", salary: 80000, happiness: 15, action: () => career = "Freelancer/Consultant" }
     ]
   },
   {
+    id: "business_model",
     text: "💡 You launched a business! What's your model?",
     ageYears: 2,
     choices: [
-      { text: "🚀 Tech Startup",          next: 14, salary: 120000, savings: -50000, happiness: 20, action: () => career = "Tech Startup Founder" },
-      { text: "🍽️ Restaurant Owner",     next: 14, salary: 90000,  savings: -40000, happiness: 10, action: () => career = "Restaurant Owner" },
-      { text: "🛍️ E-commerce Store",     next: 14, salary: 85000,  savings: -20000, happiness: 15, action: () => career = "E-commerce Entrepreneur" },
-      { text: "🏪 Franchise Owner",       next: 14, salary: 100000, savings: -75000, happiness: 12, requires: { savings: 75000 }, action: () => career = "Franchise Owner" }
+      { text: "🚀 Tech Startup",          next: "retirement", salary: 120000, savings: -50000, happiness: 20, action: () => career = "Tech Startup Founder" },
+      { text: "🍽️ Restaurant Owner",     next: "retirement", salary: 90000,  savings: -40000, happiness: 10, action: () => career = "Restaurant Owner" },
+      { text: "🛍️ E-commerce Store",     next: "retirement", salary: 85000,  savings: -20000, happiness: 15, action: () => career = "E-commerce Entrepreneur" },
+      { text: "🏪 Franchise Owner",       next: "retirement", salary: 100000, savings: -75000, happiness: 12, requires: { savings: 75000 }, action: () => career = "Franchise Owner" }
     ]
   },
   {
+    id: "retirement",
     text: "🏖️ Retirement is approaching. How do you plan for it?",
     ageYears: 20,
     choices: [
@@ -193,6 +261,32 @@ const questions = [
     ]
   }
 ];
+
+function getQuestionIndexById(id) {
+  return questions.findIndex(question => question.id === id);
+}
+
+function getCurrentQuestion() {
+  return questions[currentQuestionIndex];
+}
+
+function resolveQuestionIndex(target) {
+  if (target === null || target === undefined) return null;
+  if (typeof target === "number") {
+    return target >= 0 && target < questions.length ? target : null;
+  }
+  if (typeof target === "string") {
+    const index = getQuestionIndexById(target);
+    if (index !== -1) return index;
+  }
+
+  console.error("Unknown question target:", target);
+  return null;
+}
+
+function getNextTarget(choice) {
+  return choice.nextByPath?.[lifePath] || choice.next;
+}
 
 // ─── UI Helpers ─────────────────────────────────────────────────────────────
 function updateStatus() {
@@ -205,6 +299,8 @@ function updateStatus() {
   document.getElementById("marital-status").textContent = maritalStatus;
   document.getElementById("dependents").textContent = dependents;
   document.getElementById("age").textContent       = age;
+  const lifePathEl = document.getElementById("life-path");
+  if (lifePathEl) lifePathEl.textContent = lifePath;
 
   // Update progress bars
   const hBar  = document.getElementById("health-bar");
@@ -311,9 +407,12 @@ function getChoicePreview(choice) {
   const healthChange = choice.health || 0;
   const happinessChange = choice.happiness || 0;
 
+  if (choice.path) tags.push(`${choice.path} Path`);
+
   if (debtChange >= 150000) tags.push("Very High Debt");
   else if (debtChange >= 30000) tags.push("High Debt");
   else if (debtChange > 0) tags.push("Debt Risk");
+  else if (debtChange < 0) tags.push("Debt Reduction");
 
   if (savingsChange <= -75000) tags.push("Major Cost");
   else if (savingsChange < 0) tags.push("Savings Cost");
@@ -387,7 +486,7 @@ function hideTooltip() {
 
 // ─── Rendering ──────────────────────────────────────────────────────────────
 function renderQuestion() {
-  const q = questions[currentQuestionIndex];
+  const q = getCurrentQuestion();
   if (!q) { console.error("Bad index:", currentQuestionIndex); return; }
 
   gsap.to("#question", {
@@ -437,8 +536,8 @@ function renderQuestion() {
     }
   });
 
-  const total = questions.length;
-  document.getElementById("progress").textContent = `Step ${currentQuestionIndex + 1} of ${total}`;
+  const progressSuffix = lifePath !== "Undecided" ? ` · ${lifePath} Path` : "";
+  document.getElementById("progress").textContent = `Step ${decisionsMade + 1}${progressSuffix}`;
 }
 
 function meetsRequirements(requires) {
@@ -452,7 +551,7 @@ function selectChoice(index) {
     btn.classList.toggle("selected", i === index);
   });
 
-  const choice = questions[currentQuestionIndex].choices[index];
+  const choice = getCurrentQuestion().choices[index];
   const preview = getChoicePreview(choice);
   const summary = document.getElementById("choice-summary");
   if (summary) {
@@ -468,19 +567,21 @@ function selectChoice(index) {
 function handleNextClick() {
   if (selectedChoice === null) return;
 
-  const q      = questions[currentQuestionIndex];
+  const q      = getCurrentQuestion();
   const choice = q.choices[selectedChoice];
 
   // Snapshot before changes for diff display
   const before = { salary, savings, debt, health, happiness };
 
   // Apply stats
+  if (choice.path) lifePath = choice.path;
   salary    += choice.salary    || 0;
   debt      += choice.debt      || 0;
   health    += choice.health    || 0;
   happiness += choice.happiness || 0;
   updateFinances(choice.savings || 0);
 
+  debt      = Math.max(0, debt);
   health    = Math.max(0, Math.min(100, health));
   happiness = Math.max(0, Math.min(100, happiness));
 
@@ -489,9 +590,9 @@ function handleNextClick() {
   // Age advancement — choice-level overrides question-level
   const yearsAdded = choice.ageAdd !== undefined ? choice.ageAdd : (q.ageYears || 3);
   age += yearsAdded;
+  decisionsMade++;
 
   updateStatus();
-  saveGame();
 
   // Compute and show diffs
   const diffs = {
@@ -507,15 +608,17 @@ function handleNextClick() {
   // Life event logic — improved frequency & no-repeat
   questionsSinceLastEvent++;
   const shouldTrigger =
-    (questionsSinceLastEvent >= 3 && currentQuestionIndex % 3 === 0 && currentQuestionIndex !== 0) ||
+    (questionsSinceLastEvent >= 3 && decisionsMade % 3 === 0) ||
     (questionsSinceLastEvent >= 3 && Math.random() < 0.15) ||
     (questionsSinceLastEvent >= 2 && (debt > 50000 || health < 50) && Math.random() < 0.4);
 
   if (shouldTrigger) triggerRandomLifeEvent();
 
   // Navigate
-  if (choice.next !== null && choice.next !== undefined && choice.next < questions.length) {
-    currentQuestionIndex = choice.next;
+  const nextIndex = resolveQuestionIndex(getNextTarget(choice));
+  if (nextIndex !== null) {
+    currentQuestionIndex = nextIndex;
+    saveGame();
     renderQuestion();
   } else {
     endGame();
@@ -598,11 +701,40 @@ function getNetWorthGrade(nw) {
   return               { grade: "F",  color: "#f44336" };
 }
 
+function getPathOutcome() {
+  if (lifePath === "College") {
+    if (debt > 150000 && savings < 50000) return "Debt-Burdened Professional";
+    if (salary >= 100000) return "Credentialed Climber";
+    return "Balanced Graduate";
+  }
+
+  if (lifePath === "Trade") {
+    if (salary >= 75000) return "Skilled Specialist";
+    if (health < 70) return "Hardworking Specialist";
+    return "Steady Earner";
+  }
+
+  if (lifePath === "Early Career") {
+    if (salary >= 85000) return "Experience-First Climber";
+    if (debt === 0) return "Practical Earner";
+    return "Self-Made Starter";
+  }
+
+  if (lifePath === "Business") {
+    if (debt > 200000) return "Overextended Entrepreneur";
+    if (salary >= 100000) return "Scaling Founder";
+    return "Scrappy Builder";
+  }
+
+  return "Open Road";
+}
+
 function showSummary() {
   const gameContainer = document.querySelector(".game-container");
   const title    = getTitle();
   const netWorth = savings - debt;
   const nwGrade  = getNetWorthGrade(netWorth);
+  const pathOutcome = getPathOutcome();
 
   const lifeEventsList = lifeEventHistory.length > 0
     ? `<ul>${lifeEventHistory.map(ev => {
@@ -626,6 +758,7 @@ function showSummary() {
       </div>
 
       <div class="summary-grid">
+        <p class="summary-career">🧭 <strong>Life Path:</strong>&nbsp;${lifePath} — ${pathOutcome}</p>
         <p class="summary-career">🏢 <strong>Career:</strong>&nbsp;${career}</p>
         <p>💰 <strong>Final Salary:</strong>&nbsp;$${salary.toLocaleString()}</p>
         <p>💵 <strong>Total Savings:</strong>&nbsp;$${savings.toLocaleString()}</p>
@@ -649,11 +782,13 @@ function showSummary() {
 // ─── Save / Load ────────────────────────────────────────────────────────────
 function saveGame() {
   try {
+    const currentQuestion = getCurrentQuestion();
     const state = {
       salary, savings, debt, health, happiness,
-      dependents, career, maritalStatus, age,
+      dependents, career, maritalStatus, lifePath, age,
       lifeEventHistory, currentQuestionIndex,
-      questionsSinceLastEvent, recentEventIndices
+      currentQuestionId: currentQuestion?.id,
+      decisionsMade, questionsSinceLastEvent, recentEventIndices
     };
     localStorage.setItem("lifeGameSave", JSON.stringify(state));
   } catch (e) { /* storage unavailable */ }
@@ -672,9 +807,19 @@ function loadGame() {
     dependents = s.dependents ?? 0;
     career     = s.career     ?? "Unemployed";
     maritalStatus = s.maritalStatus ?? "Single";
+    lifePath   = s.lifePath   ?? "Undecided";
     age        = s.age        ?? 18;
     lifeEventHistory       = s.lifeEventHistory       ?? [];
-    currentQuestionIndex   = s.currentQuestionIndex   ?? 0;
+    const savedQuestionIndex = typeof s.currentQuestionId === "string"
+      ? getQuestionIndexById(s.currentQuestionId)
+      : -1;
+    currentQuestionIndex = savedQuestionIndex !== -1
+      ? savedQuestionIndex
+      : (s.currentQuestionIndex ?? 0);
+    if (currentQuestionIndex < 0 || currentQuestionIndex >= questions.length) {
+      currentQuestionIndex = 0;
+    }
+    decisionsMade = s.decisionsMade ?? Math.max(0, currentQuestionIndex);
     questionsSinceLastEvent = s.questionsSinceLastEvent ?? 0;
     recentEventIndices      = s.recentEventIndices      ?? [];
     return true;
@@ -688,9 +833,11 @@ function resetGame() {
   health = 100; happiness = 100;
   dependents = 0; age = 18;
   career = "Unemployed"; maritalStatus = "Single";
+  lifePath = "Undecided";
   lifeEventHistory = [];
   currentQuestionIndex = 0;
   selectedChoice = null;
+  decisionsMade = 0;
   questionsSinceLastEvent = 0;
   recentEventIndices = [];
 
@@ -722,14 +869,13 @@ document.addEventListener("click", function (e) {
   if (e.target.id === "playAgainBtn") resetGame();
   if (e.target.id === "loadBtn") {
     document.getElementById("save-banner").classList.add("hidden");
+    loadGame();
     updateStatus();
     renderQuestion();
   }
   if (e.target.id === "newGameBtn") {
-    localStorage.removeItem("lifeGameSave");
     document.getElementById("save-banner").classList.add("hidden");
-    // State already at defaults, just render
-    renderQuestion();
+    resetGame();
   }
 });
 
@@ -775,8 +921,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (localStorage.getItem("lifeGameSave")) {
       const banner = document.getElementById("save-banner");
       if (banner) banner.classList.remove("hidden");
-      // Pre-load the state so it's ready if user clicks Continue
-      loadGame();
     }
   } catch (e) { /* storage unavailable */ }
 });
