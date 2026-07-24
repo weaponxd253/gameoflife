@@ -294,6 +294,69 @@ function buildTooltip(choice) {
   }).join(" · ");
 }
 
+function escapeHtml(value) {
+  const div = document.createElement("div");
+  div.textContent = String(value);
+  return div.innerHTML;
+}
+
+function getChoicePreview(choice) {
+  if (Array.isArray(choice.preview)) return { tags: choice.preview };
+  if (choice.preview?.tags) return choice.preview;
+
+  const tags = [];
+  const debtChange = choice.debt || 0;
+  const savingsChange = choice.savings || 0;
+  const salaryChange = choice.salary || 0;
+  const healthChange = choice.health || 0;
+  const happinessChange = choice.happiness || 0;
+
+  if (debtChange >= 150000) tags.push("Very High Debt");
+  else if (debtChange >= 30000) tags.push("High Debt");
+  else if (debtChange > 0) tags.push("Debt Risk");
+
+  if (savingsChange <= -75000) tags.push("Major Cost");
+  else if (savingsChange < 0) tags.push("Savings Cost");
+  else if (savingsChange >= 75000) tags.push("Major Savings Boost");
+  else if (savingsChange > 0) tags.push("Savings Boost");
+
+  if (salaryChange >= 75000) tags.push("Big Income Boost");
+  else if (salaryChange > 0) tags.push("Income Boost");
+  else if (salaryChange < 0) tags.push("Lower Pay");
+
+  if (healthChange <= -10) tags.push("Health Risk");
+  else if (healthChange < 0) tags.push("Minor Health Risk");
+  else if (healthChange > 0) tags.push("Health Boost");
+
+  if (happinessChange >= 15) tags.push("Happiness Boost");
+  else if (happinessChange > 0) tags.push("Mood Lift");
+  else if (happinessChange <= -10) tags.push("Stress Risk");
+  else if (happinessChange < 0) tags.push("Small Happiness Dip");
+
+  if (choice.ageAdd >= 4) tags.push("Slow Start");
+  if (choice.requires) tags.push("Requires Cushion");
+  if (tags.length === 0) tags.push("Stable Path");
+
+  return { tags: tags.slice(0, 3) };
+}
+
+function renderChoiceContent(choice, locked = false) {
+  const preview = getChoicePreview(choice);
+  const title = `${locked ? '<span class="lock-icon">🔒</span>' : ""}${escapeHtml(choice.text)}`;
+  const tags = preview.tags
+    .map(tag => `<span class="choice-tag">${escapeHtml(tag)}</span>`)
+    .join("");
+  const summary = preview.summary
+    ? `<span class="choice-preview-summary">${escapeHtml(preview.summary)}</span>`
+    : "";
+
+  return `
+    <span class="choice-title">${title}</span>
+    <span class="choice-preview-tags">${tags}</span>
+    ${summary}
+  `;
+}
+
 let tooltipEl = null;
 function showTooltip(button, html) {
   tooltipEl = document.getElementById("choice-tooltip");
@@ -336,6 +399,11 @@ function renderQuestion() {
 
       const nextBtn = document.getElementById("nextBtn");
       if (nextBtn) nextBtn.disabled = true;
+      const summary = document.getElementById("choice-summary");
+      if (summary) {
+        summary.textContent = "Choose an option to continue.";
+        summary.classList.remove("active");
+      }
 
       q.choices.forEach((choice, i) => {
         const btn = document.createElement("button");
@@ -349,11 +417,11 @@ function renderQuestion() {
           const reqText = Object.entries(choice.requires)
             .map(([k, v]) => `${k} ≥ ${v >= 1000 ? "$" + v.toLocaleString() : v}`)
             .join(", ");
-          btn.innerHTML = `<span class="lock-icon">🔒</span>${choice.text}`;
+          btn.innerHTML = renderChoiceContent(choice, true);
           btn.addEventListener("mouseenter", () => showTooltip(btn, `<span class="tooltip-neg">Requires: ${reqText}</span>`));
           btn.addEventListener("mouseleave", hideTooltip);
         } else {
-          btn.textContent = choice.text;
+          btn.innerHTML = renderChoiceContent(choice);
           btn.onclick = () => selectChoice(i);
 
           const ttHTML = buildTooltip(choice);
@@ -383,6 +451,15 @@ function selectChoice(index) {
   document.querySelectorAll(".choice").forEach((btn, i) => {
     btn.classList.toggle("selected", i === index);
   });
+
+  const choice = questions[currentQuestionIndex].choices[index];
+  const preview = getChoicePreview(choice);
+  const summary = document.getElementById("choice-summary");
+  if (summary) {
+    summary.textContent = preview.summary || `Selected: ${choice.text} (${preview.tags.join(" · ")})`;
+    summary.classList.add("active");
+  }
+
   const nextBtn = document.getElementById("nextBtn");
   if (nextBtn) nextBtn.disabled = false;
 }
@@ -631,6 +708,7 @@ function resetGame() {
     </div>
     <p id="question">Choose your path:</p>
     <div id="choices"></div>
+    <p id="choice-summary" class="choice-summary">Choose an option to continue.</p>
     <button id="nextBtn" disabled>Next →</button>
     <p id="progress"></p>
   `;

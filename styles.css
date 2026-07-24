@@ -22,6 +22,9 @@
   --save-banner-bg: #1565c0;
   --locked-choice-bg: #2a2a2a;
   --locked-choice-text: #666;
+  --choice-tag-bg: rgba(0,123,255,0.12);
+  --choice-tag-text: #0d5f83;
+  --choice-summary-bg: rgba(0,0,0,0.08);
 }
 
 .dark-theme {
@@ -44,6 +47,9 @@
   --stat-bar-track: rgba(255,255,255,0.1);
   --locked-choice-bg: #1a1a1a;
   --locked-choice-text: #555;
+  --choice-tag-bg: rgba(136,192,208,0.18);
+  --choice-tag-text: #b9e7f3;
+  --choice-summary-bg: rgba(255,255,255,0.06);
 }
 
 /* ─── Base ────────────────────────────────────────────────────────────────── */
@@ -301,13 +307,14 @@ body {
   background-color: var(--choice-bg);
   color: var(--choice-text);
   border: 2px solid var(--choice-border);
-  padding: 12px 16px;
+  padding: 12px 16px 13px;
   font-size: 15px;
   cursor: pointer;
   border-radius: 8px;
   text-align: left;
   transition: background 0.25s, color 0.25s, transform 0.15s, box-shadow 0.15s;
   position: relative;
+  width: 100%;
 }
 
 .choice:hover:not(:disabled) {
@@ -324,6 +331,46 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
+.choice-title {
+  display: block;
+  font-weight: 600;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+
+.choice-preview-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.choice-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--choice-tag-bg);
+  color: var(--choice-tag-text);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.choice:hover:not(:disabled) .choice-tag,
+.choice.selected .choice-tag {
+  background: rgba(255,255,255,0.2);
+  color: var(--selected-choice-text);
+}
+
+.choice-preview-summary {
+  display: block;
+  margin-top: 7px;
+  font-size: 13px;
+  line-height: 1.35;
+  opacity: 0.85;
+}
+
 /* Locked / gated choices */
 .choice-locked {
   background-color: var(--locked-choice-bg) !important;
@@ -337,6 +384,28 @@ body {
 .choice-locked .lock-icon {
   margin-right: 6px;
   font-size: 13px;
+}
+
+.choice-locked .choice-tag {
+  background: rgba(255,255,255,0.08);
+  color: inherit;
+}
+
+.choice-summary {
+  min-height: 34px;
+  margin: -4px 0 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--choice-summary-bg);
+  color: var(--jumbotron-text);
+  font-size: 13px;
+  line-height: 1.35;
+  opacity: 0.72;
+}
+
+.choice-summary.active {
+  opacity: 1;
+  font-weight: 600;
 }
 
 /* ─── Tooltip ─────────────────────────────────────────────────────────────── */
@@ -374,7 +443,7 @@ body {
   cursor: pointer;
   transition: background 0.3s, box-shadow 0.3s, transform 0.15s;
   font-weight: bold;
-  letter-spacing: 0.3px;
+  letter-spacing: 0;
 }
 
 #nextBtn:hover:not(:disabled) {
