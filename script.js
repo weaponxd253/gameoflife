@@ -1,5 +1,8 @@
 // ─── Game State ────────────────────────────────────────────────────────────
 let salary = 0, savings = 0, debt = 0;
+let investments = 0;
+let studentDebt = 0, housingDebt = 0, businessDebt = 0, consumerDebt = 0;
+let annualExpenses = 0;
 let health = 100, happiness = 100;
 let dependents = 0, age = 18;
 let career = "Unemployed", maritalStatus = "Single";
@@ -16,7 +19,7 @@ let recentEventIndices = [];   // prevents same event repeating within last 3
 // ─── Life Events ───────────────────────────────────────────────────────────
 const lifeEvents = [
   { text: "Won the lottery! (+$50,000, +20 Happiness)", savings: 50000, happiness: 20 },
-  { text: "Stock market boom! (+$30,000, +10 Happiness)", savings: 30000, happiness: 10 },
+  { text: "Stock market boom! (+$30,000 investments, +10 Happiness)", investments: 30000, happiness: 10 },
   { text: "Inherited money from a relative! (+$100,000)", savings: 100000 },
   { text: "Started exercising! (+10 Health)", health: 10 },
   { text: "Got a bonus at work! (+$15,000)", savings: 15000, happiness: 5 },
@@ -45,10 +48,10 @@ const questions = [
     text: "🎓 You're 18. Where do you go from here?",
     ageYears: 0,
     choices: [
-      { text: "📚 Go to College",          next: "college_career",      path: "College",      debt: 30000,  happiness: -10, health: -5,  ageAdd: 4 },
+      { text: "📚 Go to College",          next: "college_career",      path: "College",      studentDebt: 30000,  happiness: -10, health: -5,  ageAdd: 4 },
       { text: "💼 Start a Career",          next: "early_career_start",  path: "Early Career", salary: 30000, happiness: 5,               ageAdd: 1 },
-      { text: "🔧 Attend Trade School",     next: "trade_career",        path: "Trade",        salary: 40000, debt: 10000,  happiness: 3, ageAdd: 2 },
-      { text: "🚀 Start a Business",        next: "business_focus",      path: "Business",     salary: 25000, debt: 5000,   happiness: -5, health: -10, ageAdd: 1 }
+      { text: "🔧 Attend Trade School",     next: "trade_career",        path: "Trade",        salary: 40000, studentDebt: 10000,  happiness: 3, ageAdd: 2 },
+      { text: "🚀 Start a Business",        next: "business_focus",      path: "Business",     salary: 25000, businessDebt: 5000,   happiness: -5, health: -10, ageAdd: 1 }
     ]
   },
   {
@@ -56,10 +59,10 @@ const questions = [
     text: "🎓 You finished college! Pick your career path:",
     ageYears: 0,
     choices: [
-      { text: "🩺 Doctor (High salary, high debt)",         next: "work_life_balance", salary: 120000, debt: 200000, action: () => career = "Doctor" },
-      { text: "🛠 Engineer (Good salary, moderate debt)",   next: "work_life_balance", salary: 90000,  debt: 50000,  action: () => career = "Engineer" },
-      { text: "⚖️ Lawyer (High salary, very high debt)",   next: "work_life_balance", salary: 110000, debt: 180000, action: () => career = "Lawyer" },
-      { text: "🎓 Professor (Stable income, low debt)",     next: "work_life_balance", salary: 70000,  debt: 40000,  action: () => career = "Professor" }
+      { text: "🩺 Doctor (High salary, high debt)",         next: "work_life_balance", salary: 120000, studentDebt: 200000, action: () => career = "Doctor" },
+      { text: "🛠 Engineer (Good salary, moderate debt)",   next: "work_life_balance", salary: 90000,  studentDebt: 50000,  action: () => career = "Engineer" },
+      { text: "⚖️ Lawyer (High salary, very high debt)",   next: "work_life_balance", salary: 110000, studentDebt: 180000, action: () => career = "Lawyer" },
+      { text: "🎓 Professor (Stable income, low debt)",     next: "work_life_balance", salary: 70000,  studentDebt: 40000,  action: () => career = "Professor" }
     ]
   },
   {
@@ -89,10 +92,10 @@ const questions = [
     text: "🚀 You started a business! Choose your focus:",
     ageYears: 0,
     choices: [
-      { text: "💻 Freelance Web Developer",  next: "work_life_balance", salary: 70000, debt: 5000,  happiness: 15, action: () => career = "Freelance Web Developer" },
-      { text: "🌿 Landscaping Business",     next: "work_life_balance", salary: 60000, debt: 10000, happiness: 10, health: -5, action: () => career = "Landscaper" },
-      { text: "🍔 Food Truck Owner",         next: "work_life_balance", salary: 75000, debt: 30000, happiness: 12, action: () => career = "Food Truck Owner" },
-      { text: "🛒 E-commerce Store",         next: "work_life_balance", salary: 65000, debt: 20000, happiness: 10, action: () => career = "E-commerce Entrepreneur" }
+      { text: "💻 Freelance Web Developer",  next: "work_life_balance", salary: 70000, businessDebt: 5000,  happiness: 15, action: () => career = "Freelance Web Developer" },
+      { text: "🌿 Landscaping Business",     next: "work_life_balance", salary: 60000, businessDebt: 10000, happiness: 10, health: -5, action: () => career = "Landscaper" },
+      { text: "🍔 Food Truck Owner",         next: "work_life_balance", salary: 75000, businessDebt: 30000, happiness: 12, action: () => career = "Food Truck Owner" },
+      { text: "🛒 E-commerce Store",         next: "work_life_balance", salary: 65000, businessDebt: 20000, happiness: 10, action: () => career = "E-commerce Entrepreneur" }
     ]
   },
   {
@@ -113,7 +116,7 @@ const questions = [
     choices: [
       { text: "🤝 Build your professional network", next: "relationship", salary: 15000, happiness: 5 },
       { text: "🏛️ Chase a prestigious role",       next: "relationship", salary: 30000, happiness: -10, health: -5 },
-      { text: "💸 Pay down student loans",          next: "relationship", debt: -25000, happiness: 5 }
+      { text: "💸 Pay down student loans",          next: "relationship", studentDebt: -25000, happiness: 5 }
     ]
   },
   {
@@ -123,7 +126,7 @@ const questions = [
     ageYears: 2,
     choices: [
       { text: "📣 Ask for a promotion",        next: "relationship", salary: 15000, happiness: -5 },
-      { text: "📚 Earn a certificate at night", next: "relationship", salary: 25000, debt: 8000, happiness: -8, health: -5 },
+      { text: "📚 Earn a certificate at night", next: "relationship", salary: 25000, studentDebt: 8000, happiness: -8, health: -5 },
       { text: "🏢 Switch companies",           next: "relationship", salary: 20000, happiness: 5 }
     ]
   },
@@ -133,8 +136,8 @@ const questions = [
     text: "🔧 Your trade skills are paying off. What is next?",
     ageYears: 2,
     choices: [
-      { text: "📜 Get advanced certification",       next: "relationship", salary: 15000, debt: 5000 },
-      { text: "🧰 Take independent contracts",       next: "relationship", salary: 25000, savings: -10000, happiness: 10, health: -5 },
+      { text: "📜 Get advanced certification",       next: "relationship", salary: 15000, studentDebt: 5000 },
+      { text: "🧰 Take independent contracts",       next: "relationship", salary: 25000, savings: -10000, fallbackDebtType: "businessDebt", happiness: 10, health: -5 },
       { text: "🛡️ Keep a steady union job",          next: "relationship", salary: 10000, happiness: 8, health: 5 }
     ]
   },
@@ -144,9 +147,9 @@ const questions = [
     text: "🚀 Your business has traction. How do you scale it?",
     ageYears: 2,
     choices: [
-      { text: "📈 Reinvest aggressively",   next: "relationship", salary: 45000, savings: -30000, debt: 15000, happiness: -5 },
-      { text: "🧾 Stay lean and profitable", next: "relationship", salary: 15000, savings: 15000, happiness: 8 },
-      { text: "👥 Hire help",               next: "relationship", salary: 30000, savings: -20000, happiness: 12 }
+      { text: "📈 Reinvest aggressively",   next: "relationship", salary: 45000, savings: -30000, fallbackDebtType: "businessDebt", businessDebt: 15000, annualExpenses: 12000, happiness: -5 },
+      { text: "🧾 Stay lean and profitable", next: "relationship", salary: 15000, savings: 15000, annualExpenses: 6000, happiness: 8 },
+      { text: "👥 Hire help",               next: "relationship", salary: 30000, savings: -20000, fallbackDebtType: "businessDebt", annualExpenses: 18000, happiness: 12 }
     ]
   },
   {
@@ -156,12 +159,12 @@ const questions = [
     choices: [
       {
         text: "💍 Small, intimate wedding",
-        next: "kids", savings: -10000, happiness: 20,
+        next: "kids", savings: -10000, annualExpenses: 2000, happiness: 20,
         action: () => maritalStatus = "Married"
       },
       {
         text: "💒 Grand luxury wedding",
-        next: "kids", savings: -50000, happiness: 30, salary: 30000,
+        next: "kids", savings: -50000, annualExpenses: 8000, happiness: 30, salary: 30000,
         requires: { savings: 20000 },
         action: () => maritalStatus = "Married"
       },
@@ -173,8 +176,8 @@ const questions = [
     text: "👶 Thinking about having kids?",
     ageYears: 3,
     choices: [
-      { text: "👨‍👩‍👦 Have one child",        next: "housing", happiness: 20, savings: -50000, action: () => dependents += 1 },
-      { text: "👨‍👩‍👧‍👦 Have multiple kids", next: "housing", happiness: 30, savings: -100000, action: () => dependents += 2 },
+      { text: "👨‍👩‍👦 Have one child",        next: "housing", happiness: 20, savings: -50000, annualExpenses: 14000, action: () => dependents += 1 },
+      { text: "👨‍👩‍👧‍👦 Have multiple kids", next: "housing", happiness: 30, savings: -100000, annualExpenses: 32000, action: () => dependents += 2 },
       { text: "💼 No kids — focus on career", next: "housing", happiness: -5, salary: 10000 }
     ]
   },
@@ -183,11 +186,11 @@ const questions = [
     text: "🏡 You need a place to live. What do you do?",
     ageYears: 2,
     choices: [
-      { text: "🏠 Buy a modest house (-$100,000 debt)",      next: "transportation", debt: 100000, happiness: 15 },
-      { text: "🏢 Rent an apartment (no debt, flexible)",    next: "transportation", happiness: 5 },
+      { text: "🏠 Buy a modest house (-$100,000 debt)",      next: "transportation", housingDebt: 100000, annualExpenses: 12000, happiness: 15 },
+      { text: "🏢 Rent an apartment (no debt, flexible)",    next: "transportation", annualExpenses: 18000, happiness: 5 },
       {
         text: "🏰 Invest in a luxury home (-$500,000 debt)",
-        next: "transportation", debt: 500000, happiness: 30,
+        next: "transportation", housingDebt: 500000, annualExpenses: 40000, happiness: 30,
         requires: { salary: 100000 }
       }
     ]
@@ -197,11 +200,11 @@ const questions = [
     text: "🚗 You need transportation. What do you buy?",
     ageYears: 1,
     choices: [
-      { text: "🚙 Cheap used car (-$10,000)",           next: "career_crossroads", debt: 10000 },
-      { text: "🚗 Reliable mid-range car (-$30,000)",   next: "career_crossroads", debt: 30000, happiness: 5 },
+      { text: "🚙 Cheap used car (-$10,000)",           next: "career_crossroads", consumerDebt: 10000, annualExpenses: 2500 },
+      { text: "🚗 Reliable mid-range car (-$30,000)",   next: "career_crossroads", consumerDebt: 30000, annualExpenses: 5500, happiness: 5 },
       {
         text: "🏎️ Luxury sports car (-$100,000)",
-        next: "career_crossroads", debt: 100000, happiness: 20,
+        next: "career_crossroads", consumerDebt: 100000, annualExpenses: 12000, happiness: 20,
         requires: { savings: 30000 }
       }
     ]
@@ -212,9 +215,9 @@ const questions = [
     ageYears: 8,
     choices: [
       { text: "💼 Stay at current job",                                  next: "retirement" },
-      { text: "🚀 Start a business (-$50,000 investment)",               next: "business_model", path: "Business", savings: -50000, salary: 100000, happiness: 15, requires: { savings: 50000 } },
+      { text: "🚀 Start a business (-$50,000 investment)",               next: "business_model", path: "Business", savings: -50000, fallbackDebtType: "businessDebt", salary: 100000, annualExpenses: 15000, happiness: 15, requires: { savings: 50000 } },
       { text: "🔄 Switch jobs for a better salary",                      next: "career_switch", salary: 20000, happiness: -5 },
-      { text: "🎓 Go back to college (-$30,000 tuition)",                next: "degree_career", path: "College", savings: -30000, happiness: -5, debt: 30000, requires: { savings: 30000 } }
+      { text: "🎓 Go back to college (-$30,000 tuition)",                next: "degree_career", path: "College", savings: -30000, happiness: -5, studentDebt: 30000, requires: { savings: 30000 } }
     ]
   },
   {
@@ -222,10 +225,10 @@ const questions = [
     text: "🎓 You completed your degree! Choose a high-paying career:",
     ageYears: 4,
     choices: [
-      { text: "💻 Software Developer",           next: "retirement", salary: 95000,  debt: 50000, happiness: 10, action: () => career = "Software Developer" },
-      { text: "📊 Financial Analyst",            next: "retirement", salary: 85000,  debt: 40000, happiness: 8,  action: () => career = "Financial Analyst" },
-      { text: "📢 Marketing Manager",            next: "retirement", salary: 90000,  debt: 30000, happiness: 12, action: () => career = "Marketing Manager" },
-      { text: "💊 Pharmaceutical Sales Rep",     next: "retirement", salary: 100000, debt: 25000, happiness: 15, action: () => career = "Pharmaceutical Sales Rep" }
+      { text: "💻 Software Developer",           next: "retirement", salary: 95000,  studentDebt: 50000, happiness: 10, action: () => career = "Software Developer" },
+      { text: "📊 Financial Analyst",            next: "retirement", salary: 85000,  studentDebt: 40000, happiness: 8,  action: () => career = "Financial Analyst" },
+      { text: "📢 Marketing Manager",            next: "retirement", salary: 90000,  studentDebt: 30000, happiness: 12, action: () => career = "Marketing Manager" },
+      { text: "💊 Pharmaceutical Sales Rep",     next: "retirement", salary: 100000, studentDebt: 25000, happiness: 15, action: () => career = "Pharmaceutical Sales Rep" }
     ]
   },
   {
@@ -244,10 +247,10 @@ const questions = [
     text: "💡 You launched a business! What's your model?",
     ageYears: 2,
     choices: [
-      { text: "🚀 Tech Startup",          next: "retirement", salary: 120000, savings: -50000, happiness: 20, action: () => career = "Tech Startup Founder" },
-      { text: "🍽️ Restaurant Owner",     next: "retirement", salary: 90000,  savings: -40000, happiness: 10, action: () => career = "Restaurant Owner" },
-      { text: "🛍️ E-commerce Store",     next: "retirement", salary: 85000,  savings: -20000, happiness: 15, action: () => career = "E-commerce Entrepreneur" },
-      { text: "🏪 Franchise Owner",       next: "retirement", salary: 100000, savings: -75000, happiness: 12, requires: { savings: 75000 }, action: () => career = "Franchise Owner" }
+      { text: "🚀 Tech Startup",          next: "retirement", salary: 120000, savings: -50000, fallbackDebtType: "businessDebt", annualExpenses: 30000, happiness: 20, action: () => career = "Tech Startup Founder" },
+      { text: "🍽️ Restaurant Owner",     next: "retirement", salary: 90000,  savings: -40000, fallbackDebtType: "businessDebt", annualExpenses: 36000, happiness: 10, action: () => career = "Restaurant Owner" },
+      { text: "🛍️ E-commerce Store",     next: "retirement", salary: 85000,  savings: -20000, fallbackDebtType: "businessDebt", annualExpenses: 18000, happiness: 15, action: () => career = "E-commerce Entrepreneur" },
+      { text: "🏪 Franchise Owner",       next: "retirement", salary: 100000, savings: -75000, fallbackDebtType: "businessDebt", annualExpenses: 42000, happiness: 12, requires: { savings: 75000 }, action: () => career = "Franchise Owner" }
     ]
   },
   {
@@ -257,7 +260,7 @@ const questions = [
     choices: [
       { text: "⏳ Retire early (-$300,000 savings)", next: null, savings: -300000, happiness: 20, requires: { savings: 300000 } },
       { text: "💼 Work longer for stability",         next: null, salary: 50000 },
-      { text: "📈 Invest in stocks for passive income", next: null, savings: 100000 }
+      { text: "📈 Invest in stocks for passive income", next: null, investments: 100000 }
     ]
   }
 ];
@@ -289,10 +292,129 @@ function getNextTarget(choice) {
 }
 
 // ─── UI Helpers ─────────────────────────────────────────────────────────────
+function getLegacyDebt() {
+  return Math.max(0, debt);
+}
+
+function getConsumerDebtTotal() {
+  return getLegacyDebt() + Math.max(0, consumerDebt);
+}
+
+function getTotalDebt() {
+  return getLegacyDebt()
+    + Math.max(0, studentDebt)
+    + Math.max(0, housingDebt)
+    + Math.max(0, businessDebt)
+    + Math.max(0, consumerDebt);
+}
+
+function getTotalAssets() {
+  return Math.max(0, savings) + Math.max(0, investments);
+}
+
+function getNetWorth() {
+  return getTotalAssets() - getTotalDebt();
+}
+
+function getDebtBreakdown() {
+  return [
+    { id: "studentDebt", label: "Student Debt", amount: studentDebt },
+    { id: "housingDebt", label: "Housing Debt", amount: housingDebt },
+    { id: "businessDebt", label: "Business Debt", amount: businessDebt },
+    { id: "consumerDebt", label: "Consumer Debt", amount: getConsumerDebtTotal() }
+  ];
+}
+
+function formatMoney(amount) {
+  const sign = amount < 0 ? "-" : "";
+  return `${sign}$${Math.abs(amount).toLocaleString()}`;
+}
+
+function normalizeFinanceState() {
+  savings = Math.max(0, savings);
+  investments = Math.max(0, investments);
+  debt = Math.max(0, debt);
+  studentDebt = Math.max(0, studentDebt);
+  housingDebt = Math.max(0, housingDebt);
+  businessDebt = Math.max(0, businessDebt);
+  consumerDebt = Math.max(0, consumerDebt);
+  annualExpenses = Math.max(0, annualExpenses);
+}
+
+function adjustDebtBucket(bucket, amount) {
+  if (!amount) return;
+  if (bucket === "studentDebt") studentDebt += amount;
+  else if (bucket === "housingDebt") housingDebt += amount;
+  else if (bucket === "businessDebt") businessDebt += amount;
+  else if (bucket === "consumerDebt") consumerDebt += amount;
+  else debt += amount;
+  normalizeFinanceState();
+}
+
+function getDebtBucketAmount(bucket) {
+  if (bucket === "studentDebt") return studentDebt;
+  if (bucket === "housingDebt") return housingDebt;
+  if (bucket === "businessDebt") return businessDebt;
+  if (bucket === "consumerDebt") return consumerDebt;
+  return debt;
+}
+
+function updateFinances(amount, fallbackDebtType = "consumerDebt") {
+  if (!amount) return;
+  if (amount < 0) {
+    const cost = Math.abs(amount);
+    const paidFromSavings = Math.min(savings, cost);
+    savings -= paidFromSavings;
+    const shortfall = cost - paidFromSavings;
+    if (shortfall > 0) adjustDebtBucket(fallbackDebtType, shortfall);
+  } else {
+    savings += amount;
+  }
+  normalizeFinanceState();
+}
+
+function applyFinancialEffects(source) {
+  salary += source.salary || 0;
+  investments += source.investments || 0;
+  annualExpenses += source.annualExpenses || 0;
+
+  adjustDebtBucket("legacyDebt", source.debt || 0);
+  adjustDebtBucket("studentDebt", source.studentDebt || 0);
+  adjustDebtBucket("housingDebt", source.housingDebt || 0);
+  adjustDebtBucket("businessDebt", source.businessDebt || 0);
+  adjustDebtBucket("consumerDebt", source.consumerDebt || 0);
+  updateFinances(source.savings || 0, source.fallbackDebtType || "consumerDebt");
+
+  normalizeFinanceState();
+}
+
+function getDebtEffect(source) {
+  return (source.debt || 0)
+    + (source.studentDebt || 0)
+    + (source.housingDebt || 0)
+    + (source.businessDebt || 0)
+    + (source.consumerDebt || 0);
+}
+
+function payDownDebtFromSavings() {
+  const debtBuckets = ["consumerDebt", "legacyDebt", "studentDebt", "businessDebt", "housingDebt"];
+  debtBuckets.forEach(bucket => {
+    if (savings <= 0) return;
+    const currentAmount = getDebtBucketAmount(bucket);
+    const payment = Math.min(savings, currentAmount);
+    if (payment <= 0) return;
+    savings -= payment;
+    adjustDebtBucket(bucket, -payment);
+  });
+  normalizeFinanceState();
+}
+
 function updateStatus() {
   document.getElementById("salary").textContent    = salary.toLocaleString();
   document.getElementById("savings").textContent   = savings.toLocaleString();
-  document.getElementById("debt").textContent      = debt.toLocaleString();
+  document.getElementById("debt").textContent      = getTotalDebt().toLocaleString();
+  const investmentsEl = document.getElementById("investments");
+  if (investmentsEl) investmentsEl.textContent = investments.toLocaleString();
   document.getElementById("health").textContent    = health;
   document.getElementById("happiness").textContent = happiness;
   document.getElementById("career").textContent    = career;
@@ -309,24 +431,9 @@ function updateStatus() {
   if (haBar) haBar.style.width = Math.max(0, Math.min(100, happiness)) + "%";
 }
 
-function updateFinances(amount) {
-  if (savings + amount < 0) {
-    debt += Math.abs(savings + amount);
-    savings = 0;
-  } else {
-    savings += amount;
-  }
-  document.getElementById("savings").textContent = savings.toLocaleString();
-  document.getElementById("debt").textContent    = debt.toLocaleString();
-}
-
 function adjustFinalFinances() {
-  if (debt > 0) {
-    if (savings >= debt) { savings -= debt; debt = 0; }
-    else                 { debt -= savings; savings = 0; }
-  }
-  document.getElementById("savings").textContent = savings.toLocaleString();
-  document.getElementById("debt").textContent    = debt.toLocaleString();
+  payDownDebtFromSavings();
+  updateStatus();
 }
 
 // ─── Stat Diff Panel ────────────────────────────────────────────────────────
@@ -340,7 +447,9 @@ function showStatDiffs(diffs) {
   const labels = {
     salary:    { icon: "💰", label: "Salary",    money: true },
     savings:   { icon: "💵", label: "Savings",   money: true },
+    investments: { icon: "📈", label: "Investments", money: true },
     debt:      { icon: "🏦", label: "Debt",      money: true, invertColor: true },
+    annualExpenses: { icon: "🧾", label: "Annual Expenses", money: true, invertColor: true },
     health:    { icon: "❤️", label: "Health",    money: false },
     happiness: { icon: "😊", label: "Happiness", money: false },
     age:       { icon: "🎂", label: "Age",       money: false }
@@ -375,7 +484,13 @@ function buildTooltip(choice) {
   const parts = [];
   if (choice.salary)    parts.push({ label: "Salary",    val: choice.salary,    money: true,  inv: false });
   if (choice.savings)   parts.push({ label: "Savings",   val: choice.savings,   money: true,  inv: false });
+  if (choice.investments) parts.push({ label: "Investments", val: choice.investments, money: true, inv: false });
   if (choice.debt)      parts.push({ label: "Debt",      val: choice.debt,      money: true,  inv: true  });
+  if (choice.studentDebt) parts.push({ label: "Student Debt", val: choice.studentDebt, money: true, inv: true });
+  if (choice.housingDebt) parts.push({ label: "Housing Debt", val: choice.housingDebt, money: true, inv: true });
+  if (choice.businessDebt) parts.push({ label: "Business Debt", val: choice.businessDebt, money: true, inv: true });
+  if (choice.consumerDebt) parts.push({ label: "Consumer Debt", val: choice.consumerDebt, money: true, inv: true });
+  if (choice.annualExpenses) parts.push({ label: "Annual Expenses", val: choice.annualExpenses, money: true, inv: true });
   if (choice.health)    parts.push({ label: "Health",    val: choice.health,    money: false, inv: false });
   if (choice.happiness) parts.push({ label: "Happiness", val: choice.happiness, money: false, inv: false });
   if (parts.length === 0) return "No immediate stat change";
@@ -401,8 +516,10 @@ function getChoicePreview(choice) {
   if (choice.preview?.tags) return choice.preview;
 
   const tags = [];
-  const debtChange = choice.debt || 0;
+  const debtChange = getDebtEffect(choice);
   const savingsChange = choice.savings || 0;
+  const investmentsChange = choice.investments || 0;
+  const expenseChange = choice.annualExpenses || 0;
   const salaryChange = choice.salary || 0;
   const healthChange = choice.health || 0;
   const happinessChange = choice.happiness || 0;
@@ -418,6 +535,14 @@ function getChoicePreview(choice) {
   else if (savingsChange < 0) tags.push("Savings Cost");
   else if (savingsChange >= 75000) tags.push("Major Savings Boost");
   else if (savingsChange > 0) tags.push("Savings Boost");
+
+  if (investmentsChange >= 50000) tags.push("Major Investment Boost");
+  else if (investmentsChange > 0) tags.push("Investment Boost");
+  else if (investmentsChange < 0) tags.push("Investment Loss");
+
+  if (expenseChange >= 25000) tags.push("High Expenses");
+  else if (expenseChange > 0) tags.push("Lifestyle Cost");
+  else if (expenseChange < 0) tags.push("Lower Expenses");
 
   if (salaryChange >= 75000) tags.push("Big Income Boost");
   else if (salaryChange > 0) tags.push("Income Boost");
@@ -541,7 +666,12 @@ function renderQuestion() {
 }
 
 function meetsRequirements(requires) {
-  const stats = { savings, salary, health, happiness, debt, age };
+  const stats = {
+    savings, investments, salary, health, happiness, age,
+    debt: getTotalDebt(),
+    totalDebt: getTotalDebt(),
+    annualExpenses
+  };
   return Object.entries(requires).every(([k, v]) => (stats[k] ?? 0) >= v);
 }
 
@@ -571,17 +701,22 @@ function handleNextClick() {
   const choice = q.choices[selectedChoice];
 
   // Snapshot before changes for diff display
-  const before = { salary, savings, debt, health, happiness };
+  const before = {
+    salary,
+    savings,
+    investments,
+    debt: getTotalDebt(),
+    annualExpenses,
+    health,
+    happiness
+  };
 
   // Apply stats
   if (choice.path) lifePath = choice.path;
-  salary    += choice.salary    || 0;
-  debt      += choice.debt      || 0;
+  applyFinancialEffects(choice);
   health    += choice.health    || 0;
   happiness += choice.happiness || 0;
-  updateFinances(choice.savings || 0);
 
-  debt      = Math.max(0, debt);
   health    = Math.max(0, Math.min(100, health));
   happiness = Math.max(0, Math.min(100, happiness));
 
@@ -598,7 +733,9 @@ function handleNextClick() {
   const diffs = {
     salary:    salary    - before.salary,
     savings:   savings   - before.savings,
-    debt:      debt      - before.debt,
+    investments: investments - before.investments,
+    debt:      getTotalDebt() - before.debt,
+    annualExpenses: annualExpenses - before.annualExpenses,
     health:    health    - before.health,
     happiness: happiness - before.happiness,
     age:       yearsAdded
@@ -610,7 +747,7 @@ function handleNextClick() {
   const shouldTrigger =
     (questionsSinceLastEvent >= 3 && decisionsMade % 3 === 0) ||
     (questionsSinceLastEvent >= 3 && Math.random() < 0.15) ||
-    (questionsSinceLastEvent >= 2 && (debt > 50000 || health < 50) && Math.random() < 0.4);
+    (questionsSinceLastEvent >= 2 && (getTotalDebt() > 50000 || health < 50) && Math.random() < 0.4);
 
   if (shouldTrigger) triggerRandomLifeEvent();
 
@@ -660,8 +797,7 @@ function triggerRandomLifeEvent() {
 }
 
 function applyLifeEventEffects(event) {
-  updateFinances(event.savings || 0);
-  debt      += event.debt      || 0;
+  applyFinancialEffects(event);
   health    += event.health    || 0;
   happiness += event.happiness || 0;
   health    = Math.max(0, Math.min(100, health));
@@ -677,10 +813,11 @@ function endGame() {
 }
 
 function getTitle() {
-  const netWorth = savings - debt;
+  const netWorth = getNetWorth();
+  const totalDebt = getTotalDebt();
   if (netWorth > 1000000)              return "🤑 The Millionaire";
-  if (debt === 0 && savings > 100000)  return "💰 The Debt-Free King/Queen 👑";
-  if (savings > 500000)                return "💎 The Wealth Builder";
+  if (totalDebt === 0 && getTotalAssets() > 100000)  return "💰 The Debt-Free King/Queen 👑";
+  if (getTotalAssets() > 500000)       return "💎 The Wealth Builder";
   if (happiness === 100 && health === 100) return "🌟 The Perfect Life Achiever";
   if (happiness >= 80)                 return "😊 The Joyful Guru";
   if (health >= 90)                    return "💪 The Fitness Master";
@@ -688,7 +825,7 @@ function getTitle() {
   if (career.toLowerCase().includes("entrepreneur") || career.toLowerCase().includes("founder"))
                                        return "🚀 The Business Tycoon";
   if (dependents > 2)                  return "👨‍👩‍👧‍👦 The Family Builder";
-  if (debt > 500000)                   return "😅 The Risk Taker";
+  if (totalDebt > 500000)              return "😅 The Risk Taker";
   return "🌎 The Survivor";
 }
 
@@ -701,9 +838,97 @@ function getNetWorthGrade(nw) {
   return               { grade: "F",  color: "#f44336" };
 }
 
+function clampScore(score) {
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function getGradeMeta(score) {
+  const safeScore = clampScore(score);
+  if (safeScore >= 97) return { grade: "A+", color: "#4caf50" };
+  if (safeScore >= 90) return { grade: "A",  color: "#8bc34a" };
+  if (safeScore >= 80) return { grade: "B",  color: "#cddc39" };
+  if (safeScore >= 70) return { grade: "C",  color: "#ffc107" };
+  if (safeScore >= 60) return { grade: "D",  color: "#ff9800" };
+  return                    { grade: "F",  color: "#f44336" };
+}
+
+function scoreToGrade(score) {
+  return getGradeMeta(score).grade;
+}
+
+function getFinancialScore() {
+  const netWorth = getNetWorth();
+  const totalDebt = getTotalDebt();
+  const totalAssets = getTotalAssets();
+  const debtBaseline = Math.max(25000, salary || 0);
+  const netWorthScore = clampScore(50 + (netWorth / 5000));
+  const assetScore = clampScore(totalAssets / 2500);
+  const debtScore = totalDebt === 0
+    ? 100
+    : clampScore(100 - ((totalDebt / debtBaseline) * 25));
+  const expenseRatio = salary > 0 ? annualExpenses / salary : (annualExpenses > 0 ? 2 : 0);
+  const expensePenalty = expenseRatio > 0.7 ? 15 : expenseRatio > 0.4 ? 7 : 0;
+
+  return clampScore((netWorthScore * 0.55) + (debtScore * 0.25) + (assetScore * 0.2) - expensePenalty);
+}
+
+function getCareerScore() {
+  const salaryScore = clampScore(((salary - 25000) / 125000) * 100);
+  let score = salaryScore * 0.85;
+
+  if (career && career !== "Unemployed") score += 12;
+  if (lifePath !== "Undecided") score += 3;
+  if (lifePath === "College" && salary >= 70000) score += 5;
+  if (lifePath === "Trade" && salary >= 55000) score += 5;
+  if (lifePath === "Early Career" && salary >= 45000) score += 5;
+  if (lifePath === "Business" && salary >= 65000) score += 5;
+
+  return clampScore(score);
+}
+
+function getBalanceScore() {
+  const financialScore = getFinancialScore();
+  const lowestCoreScore = Math.min(health, happiness, financialScore);
+  const coreAverage = (health + happiness + financialScore) / 3;
+  const totalDebt = getTotalDebt();
+  const expenseRatio = salary > 0 ? annualExpenses / salary : (annualExpenses > 0 ? 2 : 0);
+  const heavyDebtPenalty = totalDebt > Math.max(50000, salary * 2) ? 10 : 0;
+  const expensePenalty = expenseRatio > 0.7 ? 12 : expenseRatio > 0.4 ? 6 : 0;
+  const commitmentPressure = dependents > 0 && savings < dependents * 25000 ? 8 : 0;
+
+  return clampScore((coreAverage * 0.7) + (lowestCoreScore * 0.3) - heavyDebtPenalty - expensePenalty - commitmentPressure);
+}
+
+const scoreCategories = [
+  { id: "financial", label: "Financial",    icon: "💰", weight: 0.30, calculate: getFinancialScore },
+  { id: "career",    label: "Career",       icon: "🏢", weight: 0.20, calculate: getCareerScore },
+  { id: "health",    label: "Health",       icon: "❤️", weight: 0.20, calculate: () => health },
+  { id: "happiness", label: "Happiness",    icon: "😊", weight: 0.20, calculate: () => happiness },
+  { id: "balance",   label: "Life Balance", icon: "⚖️", weight: 0.10, calculate: getBalanceScore }
+];
+
+function getScoreBreakdown() {
+  const categories = scoreCategories.map(category => {
+    const score = clampScore(category.calculate());
+    const gradeMeta = getGradeMeta(score);
+    return { ...category, score, ...gradeMeta };
+  });
+  const totalWeight = categories.reduce((sum, category) => sum + category.weight, 0);
+  const overallScore = clampScore(
+    categories.reduce((sum, category) => sum + (category.score * category.weight), 0) / totalWeight
+  );
+  const overallGrade = getGradeMeta(overallScore);
+
+  return {
+    categories,
+    overall: { score: overallScore, ...overallGrade }
+  };
+}
+
 function getPathOutcome() {
+  const totalDebt = getTotalDebt();
   if (lifePath === "College") {
-    if (debt > 150000 && savings < 50000) return "Debt-Burdened Professional";
+    if (studentDebt > 150000 && savings < 50000) return "Debt-Burdened Professional";
     if (salary >= 100000) return "Credentialed Climber";
     return "Balanced Graduate";
   }
@@ -716,12 +941,12 @@ function getPathOutcome() {
 
   if (lifePath === "Early Career") {
     if (salary >= 85000) return "Experience-First Climber";
-    if (debt === 0) return "Practical Earner";
+    if (totalDebt === 0) return "Practical Earner";
     return "Self-Made Starter";
   }
 
   if (lifePath === "Business") {
-    if (debt > 200000) return "Overextended Entrepreneur";
+    if (businessDebt > 200000 || totalDebt > 300000) return "Overextended Entrepreneur";
     if (salary >= 100000) return "Scaling Founder";
     return "Scrappy Builder";
   }
@@ -732,14 +957,35 @@ function getPathOutcome() {
 function showSummary() {
   const gameContainer = document.querySelector(".game-container");
   const title    = getTitle();
-  const netWorth = savings - debt;
+  const netWorth = getNetWorth();
+  const totalDebt = getTotalDebt();
   const nwGrade  = getNetWorthGrade(netWorth);
   const pathOutcome = getPathOutcome();
+  const scoreBreakdown = getScoreBreakdown();
+  const overallGrade = scoreBreakdown.overall;
+  const debtRows = getDebtBreakdown().map(item => `
+    <p><span>${item.label}</span><strong>${formatMoney(item.amount)}</strong></p>
+  `).join("");
+  const scoreRows = scoreBreakdown.categories.map(category => `
+    <div class="score-row">
+      <span class="score-label">${category.icon} ${category.label}</span>
+      <span class="score-bar-track">
+        <span class="score-bar-fill" style="width:${category.score}%; background:${category.color}"></span>
+      </span>
+      <span class="score-grade" style="color:${category.color}; border-color:${category.color}">${category.grade}</span>
+      <span class="score-value">${category.score}/100</span>
+    </div>
+  `).join("");
 
   const lifeEventsList = lifeEventHistory.length > 0
     ? `<ul>${lifeEventHistory.map(ev => {
         if (!ev?.text) return "";
-        const bad  = (ev.savings || 0) < 0 || (ev.health || 0) < 0 || (ev.happiness || 0) < 0;
+        const bad  = (ev.savings || 0) < 0
+          || (ev.investments || 0) < 0
+          || getDebtEffect(ev) > 0
+          || (ev.annualExpenses || 0) > 0
+          || (ev.health || 0) < 0
+          || (ev.happiness || 0) < 0;
         return `<li class="${bad ? "negative" : "positive"}">${bad ? "❌" : "✅"} ${ev.text}</li>`;
       }).join("")}</ul>`
     : "<p style='opacity:0.6'>No major life events happened.</p>";
@@ -754,7 +1000,39 @@ function showSummary() {
       <div class="net-worth-row">
         <span>Net Worth: <strong style="color:${nwColor}">${netWorth < 0 ? "-$" : "$"}${Math.abs(netWorth).toLocaleString()}</strong></span>
         <span class="nw-grade" style="background:${nwColor}22; color:${nwColor}; border:2px solid ${nwColor}">${nwGrade.grade}</span>
+        <span style="font-size:14px; opacity:0.7">Financial Result</span>
         <span style="font-size:14px; opacity:0.7">Final Age: ${age}</span>
+      </div>
+
+      <div class="score-breakdown">
+        <div class="score-breakdown-header">
+          <h3>Score Breakdown</h3>
+          <div class="overall-score">
+            <span>Overall</span>
+            <strong style="color:${overallGrade.color}; border-color:${overallGrade.color}">${overallGrade.grade}</strong>
+            <span>${overallGrade.score}/100</span>
+          </div>
+        </div>
+        <div class="score-rows">
+          ${scoreRows}
+        </div>
+      </div>
+
+      <div class="financial-details">
+        <div>
+          <h3>Assets</h3>
+          <p><span>Savings</span><strong>${formatMoney(savings)}</strong></p>
+          <p><span>Investments</span><strong>${formatMoney(investments)}</strong></p>
+        </div>
+        <div>
+          <h3>Debt</h3>
+          ${debtRows}
+        </div>
+        <div>
+          <h3>Lifestyle</h3>
+          <p><span>Annual Expenses</span><strong>${formatMoney(annualExpenses)}</strong></p>
+          <p><span>Total Debt</span><strong>${formatMoney(totalDebt)}</strong></p>
+        </div>
       </div>
 
       <div class="summary-grid">
@@ -762,7 +1040,9 @@ function showSummary() {
         <p class="summary-career">🏢 <strong>Career:</strong>&nbsp;${career}</p>
         <p>💰 <strong>Final Salary:</strong>&nbsp;$${salary.toLocaleString()}</p>
         <p>💵 <strong>Total Savings:</strong>&nbsp;$${savings.toLocaleString()}</p>
-        <p>🏦 <strong>Total Debt:</strong>&nbsp;$${debt.toLocaleString()}</p>
+        <p>📈 <strong>Investments:</strong>&nbsp;$${investments.toLocaleString()}</p>
+        <p>🏦 <strong>Total Debt:</strong>&nbsp;$${totalDebt.toLocaleString()}</p>
+        <p>🧾 <strong>Annual Expenses:</strong>&nbsp;$${annualExpenses.toLocaleString()}</p>
         <p>😊 <strong>Happiness:</strong>&nbsp;${happiness}/100</p>
         <p>❤️ <strong>Health:</strong>&nbsp;${health}/100</p>
         <p>💍 <strong>Marital Status:</strong>&nbsp;${maritalStatus}</p>
@@ -784,7 +1064,9 @@ function saveGame() {
   try {
     const currentQuestion = getCurrentQuestion();
     const state = {
-      salary, savings, debt, health, happiness,
+      salary, savings, debt, investments,
+      studentDebt, housingDebt, businessDebt, consumerDebt, annualExpenses,
+      health, happiness,
       dependents, career, maritalStatus, lifePath, age,
       lifeEventHistory, currentQuestionIndex,
       currentQuestionId: currentQuestion?.id,
@@ -802,6 +1084,12 @@ function loadGame() {
     salary     = s.salary     ?? 0;
     savings    = s.savings    ?? 0;
     debt       = s.debt       ?? 0;
+    investments = s.investments ?? 0;
+    studentDebt = s.studentDebt ?? 0;
+    housingDebt = s.housingDebt ?? 0;
+    businessDebt = s.businessDebt ?? 0;
+    consumerDebt = s.consumerDebt ?? 0;
+    annualExpenses = s.annualExpenses ?? 0;
     health     = s.health     ?? 100;
     happiness  = s.happiness  ?? 100;
     dependents = s.dependents ?? 0;
@@ -822,6 +1110,7 @@ function loadGame() {
     decisionsMade = s.decisionsMade ?? Math.max(0, currentQuestionIndex);
     questionsSinceLastEvent = s.questionsSinceLastEvent ?? 0;
     recentEventIndices      = s.recentEventIndices      ?? [];
+    normalizeFinanceState();
     return true;
   } catch (e) { return false; }
 }
@@ -830,6 +1119,9 @@ function loadGame() {
 function resetGame() {
   localStorage.removeItem("lifeGameSave");
   salary = 0; savings = 0; debt = 0;
+  investments = 0;
+  studentDebt = 0; housingDebt = 0; businessDebt = 0; consumerDebt = 0;
+  annualExpenses = 0;
   health = 100; happiness = 100;
   dependents = 0; age = 18;
   career = "Unemployed"; maritalStatus = "Single";
