@@ -11,6 +11,8 @@ let lifeEventHistory = [];
 let currentQuestionIndex = 0;
 let selectedChoice = null;
 let decisionsMade = 0;
+let maxDebtCarried = 0;
+let maxStudentDebtCarried = 0;
 
 // Life event cooldown tracking
 let questionsSinceLastEvent = 0;
@@ -516,6 +518,11 @@ function normalizeFinanceState() {
   annualExpenses = Math.max(0, annualExpenses);
 }
 
+function updateFinancialMilestones() {
+  maxDebtCarried = Math.max(maxDebtCarried, getTotalDebt());
+  maxStudentDebtCarried = Math.max(maxStudentDebtCarried, studentDebt);
+}
+
 function adjustDebtBucket(bucket, amount) {
   if (!amount) return;
   if (bucket === "studentDebt") studentDebt += amount;
@@ -561,6 +568,7 @@ function applyFinancialEffects(source) {
   updateFinances(source.savings || 0, source.fallbackDebtType || "consumerDebt");
 
   normalizeFinanceState();
+  updateFinancialMilestones();
 }
 
 function getDebtEffect(source) {
@@ -1245,6 +1253,167 @@ function getScoreBreakdown() {
   };
 }
 
+const ACHIEVEMENT_COLLECTION_KEY = "lifeGameAchievements";
+
+const achievements = [
+  {
+    id: "debt_free",
+    title: "Debt Free",
+    icon: "💰",
+    description: "Finished with no debt.",
+    condition: () => getTotalDebt() === 0
+  },
+  {
+    id: "millionaire",
+    title: "Millionaire",
+    icon: "🤑",
+    description: "Reached at least $1,000,000 net worth.",
+    condition: () => getNetWorth() >= 1000000
+  },
+  {
+    id: "investor",
+    title: "Investor",
+    icon: "📈",
+    description: "Built investments worth at least $100,000.",
+    condition: () => investments >= 100000
+  },
+  {
+    id: "career_climber",
+    title: "Career Climber",
+    icon: "🏢",
+    description: "Earned an A-level career score.",
+    condition: ({ categoryScores }) => (categoryScores.career?.score || 0) >= 90
+  },
+  {
+    id: "joyful_life",
+    title: "Joyful Life",
+    icon: "😊",
+    description: "Finished with happiness at 90 or higher.",
+    condition: () => happiness >= 90
+  },
+  {
+    id: "healthy_life",
+    title: "Healthy Life",
+    icon: "❤️",
+    description: "Finished with health at 90 or higher.",
+    condition: () => health >= 90
+  },
+  {
+    id: "balanced_life",
+    title: "Balanced Life",
+    icon: "⚖️",
+    description: "Kept every score category at 75 or higher.",
+    condition: ({ scores }) => scores.categories.every(category => category.score >= 75)
+  },
+  {
+    id: "risk_taker",
+    title: "Risk Taker",
+    icon: "🚀",
+    description: "Built a business path or carried major business debt.",
+    condition: () => lifePath === "Business" || businessDebt >= 100000
+  },
+  {
+    id: "family_first",
+    title: "Family First",
+    icon: "👶",
+    description: "Raised a larger family while staying happy.",
+    condition: () => dependents >= 2 && happiness >= 75
+  },
+  {
+    id: "comeback_story",
+    title: "Comeback Story",
+    icon: "🌅",
+    description: "Finished positive after carrying heavy debt.",
+    condition: () => getNetWorth() > 0 && maxDebtCarried >= 150000
+  },
+  {
+    id: "student_loan_survivor",
+    title: "Student Loan Survivor",
+    icon: "🎓",
+    description: "Brought major student debt below $10,000.",
+    condition: () => maxStudentDebtCarried >= 30000 && studentDebt < 10000
+  },
+  {
+    id: "homeowner",
+    title: "Homeowner",
+    icon: "🏡",
+    description: "Bought property during your life.",
+    condition: () => housingDebt > 0
+  },
+  {
+    id: "entrepreneur",
+    title: "Entrepreneur",
+    icon: "🛠",
+    description: "Built a business or founder career.",
+    condition: () => lifePath === "Business"
+      || /founder|entrepreneur|owner/i.test(career)
+  },
+  {
+    id: "market_player",
+    title: "Market Player",
+    icon: "📊",
+    description: "Invested meaningfully or experienced an investment event.",
+    condition: () => investments >= 100000 || hasEventCategory("investment")
+  },
+  {
+    id: "resilient",
+    title: "Resilient",
+    icon: "🧭",
+    description: "Had several setbacks and still finished at C or better overall.",
+    condition: ({ scores }) => countNegativeLifeEvents() >= 3 && scores.overall.score >= 70
+  }
+];
+
+function getAchievementCollection() {
+  try {
+    const raw = localStorage.getItem(ACHIEVEMENT_COLLECTION_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveUnlockedAchievements(unlockedAchievements) {
+  const existingIds = getAchievementCollection();
+  const mergedIds = Array.from(new Set([
+    ...existingIds,
+    ...unlockedAchievements.map(achievement => achievement.id)
+  ]));
+
+  try {
+    localStorage.setItem(ACHIEVEMENT_COLLECTION_KEY, JSON.stringify(mergedIds));
+  } catch (e) { /* storage unavailable */ }
+
+  return mergedIds;
+}
+
+function getAchievementById(id) {
+  return achievements.find(achievement => achievement.id === id);
+}
+
+function hasEventCategory(category) {
+  return lifeEventHistory.some(event => event?.category === category);
+}
+
+function countNegativeLifeEvents() {
+  return lifeEventHistory.filter(isNegativeEvent).length;
+}
+
+function getUnlockedAchievements(scores = getScoreBreakdown()) {
+  const categoryScores = Object.fromEntries(
+    scores.categories.map(category => [category.id, category])
+  );
+
+  return achievements.filter(achievement => {
+    try {
+      return achievement.condition({ scores, categoryScores });
+    } catch (e) {
+      return false;
+    }
+  });
+}
+
 function getPathOutcome() {
   const totalDebt = getTotalDebt();
   if (lifePath === "College") {
@@ -1283,6 +1452,22 @@ function showSummary() {
   const pathOutcome = getPathOutcome();
   const scoreBreakdown = getScoreBreakdown();
   const overallGrade = scoreBreakdown.overall;
+  const unlockedAchievements = getUnlockedAchievements(scoreBreakdown);
+  const achievementCollectionIds = saveUnlockedAchievements(unlockedAchievements);
+  const knownAchievementCount = achievementCollectionIds
+    .filter(id => Boolean(getAchievementById(id)))
+    .length;
+  const achievementCards = unlockedAchievements.length > 0
+    ? unlockedAchievements.map(achievement => `
+      <div class="achievement-card">
+        <span class="achievement-icon">${achievement.icon}</span>
+        <span>
+          <strong>${achievement.title}</strong>
+          <small>${achievement.description}</small>
+        </span>
+      </div>
+    `).join("")
+    : `<p class="achievement-empty">No badges this run. Try a different path.</p>`;
   const debtRows = getDebtBreakdown().map(item => `
     <p><span>${item.label}</span><strong>${formatMoney(item.amount)}</strong></p>
   `).join("");
@@ -1365,6 +1550,16 @@ function showSummary() {
         <p>👶 <strong>Dependents:</strong>&nbsp;${dependents}</p>
       </div>
 
+      <div class="achievements-section">
+        <div class="achievements-header">
+          <h3>Achievements Unlocked</h3>
+          <span>${knownAchievementCount} of ${achievements.length}</span>
+        </div>
+        <div class="achievement-grid">
+          ${achievementCards}
+        </div>
+      </div>
+
       <div class="life-events-list">
         <h3>📜 Life Events You Experienced:</h3>
         ${lifeEventsList}
@@ -1386,7 +1581,8 @@ function saveGame() {
       dependents, career, maritalStatus, lifePath, age,
       lifeEventHistory, currentQuestionIndex,
       currentQuestionId: currentQuestion?.id,
-      decisionsMade, questionsSinceLastEvent, recentEventIndices
+      decisionsMade, maxDebtCarried, maxStudentDebtCarried,
+      questionsSinceLastEvent, recentEventIndices
     };
     localStorage.setItem("lifeGameSave", JSON.stringify(state));
   } catch (e) { /* storage unavailable */ }
@@ -1424,9 +1620,12 @@ function loadGame() {
       currentQuestionIndex = 0;
     }
     decisionsMade = s.decisionsMade ?? Math.max(0, currentQuestionIndex);
+    maxDebtCarried = Math.max(s.maxDebtCarried ?? 0, getTotalDebt());
+    maxStudentDebtCarried = Math.max(s.maxStudentDebtCarried ?? 0, studentDebt);
     questionsSinceLastEvent = s.questionsSinceLastEvent ?? 0;
     recentEventIndices      = s.recentEventIndices      ?? [];
     normalizeFinanceState();
+    updateFinancialMilestones();
     return true;
   } catch (e) { return false; }
 }
@@ -1446,6 +1645,8 @@ function resetGame() {
   currentQuestionIndex = 0;
   selectedChoice = null;
   decisionsMade = 0;
+  maxDebtCarried = 0;
+  maxStudentDebtCarried = 0;
   questionsSinceLastEvent = 0;
   recentEventIndices = [];
 

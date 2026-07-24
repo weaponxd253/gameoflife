@@ -651,6 +651,76 @@ body {
   margin-bottom: 4px;
 }
 
+.achievements-section {
+  margin: 0 0 18px;
+  padding: 14px 0 16px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  text-align: left;
+}
+
+.achievements-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.achievements-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.achievements-header span {
+  color: rgba(232,234,246,0.75);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.achievement-card {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.055);
+}
+
+.achievement-icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.12);
+  font-size: 18px;
+}
+
+.achievement-card strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 14px;
+}
+
+.achievement-card small,
+.achievement-empty {
+  display: block;
+  margin: 0;
+  color: rgba(232,234,246,0.72);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
 @media screen and (max-width: 600px) {
   .summary-grid { grid-template-columns: 1fr; }
   .summary-career { grid-column: 1; }
@@ -666,6 +736,8 @@ body {
   }
   .score-grade { justify-self: end; }
   .financial-details { grid-template-columns: 1fr; }
+  .achievements-header { align-items: flex-start; flex-direction: column; }
+  .achievement-grid { grid-template-columns: 1fr; }
 }
 
 /* Life events list */
