@@ -18,18 +18,193 @@ let recentEventIndices = [];   // prevents same event repeating within last 3
 
 // ─── Life Events ───────────────────────────────────────────────────────────
 const lifeEvents = [
-  { text: "Won the lottery! (+$50,000, +20 Happiness)", savings: 50000, happiness: 20 },
-  { text: "Stock market boom! (+$30,000 investments, +10 Happiness)", investments: 30000, happiness: 10 },
-  { text: "Inherited money from a relative! (+$100,000)", savings: 100000 },
-  { text: "Started exercising! (+10 Health)", health: 10 },
-  { text: "Got a bonus at work! (+$15,000)", savings: 15000, happiness: 5 },
-  { text: "Made a great friend! (+10 Happiness)", happiness: 10 },
-  { text: "Unexpected medical bill (-$20,000, -20 Health)", savings: -20000, health: -20 },
-  { text: "Car accident repair costs (-$5,000, -10 Happiness)", savings: -5000, happiness: -10 },
-  { text: "Lost money in a bad investment (-$25,000, -15 Happiness)", savings: -25000, happiness: -15 },
-  { text: "Developed bad habits (-15 Health, -5 Happiness)", health: -15, happiness: -5 },
-  { text: "Layoff scare — stressful quarter (-10 Happiness, -5 Health)", happiness: -10, health: -5 },
-  { text: "Identity theft! (-$8,000, -15 Happiness)", savings: -8000, happiness: -15 }
+  {
+    id: "lottery_win",
+    category: "financial",
+    weight: 1,
+    text: "Won the lottery! (+$50,000, +20 Happiness)",
+    effects: { savings: 50000, happiness: 20 }
+  },
+  {
+    id: "inheritance",
+    category: "financial",
+    weight: 2,
+    text: "Inherited money from a relative! (+$100,000)",
+    effects: { savings: 100000 }
+  },
+  {
+    id: "identity_theft",
+    category: "financial",
+    weight: 6,
+    text: "Identity theft! (-$8,000, -15 Happiness)",
+    effects: { savings: -8000, happiness: -15 }
+  },
+  {
+    id: "student_loan_refinance",
+    category: "financial",
+    weight: 7,
+    conditions: { minStudentDebt: 30000 },
+    text: "Student loan refinancing helped (-$15,000 student debt, +5 Happiness)",
+    effects: { studentDebt: -15000, happiness: 5 }
+  },
+  {
+    id: "consumer_debt_consolidation",
+    category: "financial",
+    weight: 6,
+    conditions: { minConsumerDebt: 10000 },
+    text: "Debt consolidation lowered your consumer debt (-$8,000 debt, +4 Happiness)",
+    effects: { consumerDebt: -8000, happiness: 4 }
+  },
+  {
+    id: "lifestyle_creep",
+    category: "financial",
+    weight: 5,
+    conditions: { minSalary: 70000, minAnnualExpenses: 25000 },
+    text: "Lifestyle creep raised your baseline costs (+$8,000 annual expenses, -5 Happiness)",
+    effects: { annualExpenses: 8000, happiness: -5 }
+  },
+  {
+    id: "started_exercising",
+    category: "health",
+    weight: 7,
+    conditions: { maxHealth: 90 },
+    text: "Started exercising! (+10 Health)",
+    effects: { health: 10 }
+  },
+  {
+    id: "medical_bill",
+    category: "health",
+    weight: 8,
+    conditions: { maxHealth: 75, minAge: 28 },
+    text: "Unexpected medical bill (-$20,000, -20 Health)",
+    effects: { savings: -20000, health: -20 }
+  },
+  {
+    id: "bad_habits",
+    category: "health",
+    weight: 5,
+    conditions: { maxHappiness: 85 },
+    text: "Developed bad habits (-15 Health, -5 Happiness)",
+    effects: { health: -15, happiness: -5 }
+  },
+  {
+    id: "bonus_at_work",
+    category: "career",
+    weight: 7,
+    conditions: { minSalary: 35000 },
+    text: "Got a bonus at work! (+$15,000, +5 Happiness)",
+    effects: { savings: 15000, happiness: 5 }
+  },
+  {
+    id: "promotion",
+    category: "career",
+    weight: 6,
+    conditions: { minSalary: 50000 },
+    text: "Promotion came through! (+$20,000 Salary, +10 Happiness)",
+    effects: { salary: 20000, happiness: 10 }
+  },
+  {
+    id: "layoff_scare",
+    category: "career",
+    weight: 6,
+    conditions: { minSalary: 30000 },
+    text: "Layoff scare — stressful quarter (-10 Happiness, -5 Health)",
+    effects: { happiness: -10, health: -5 }
+  },
+  {
+    id: "made_friend",
+    category: "family",
+    weight: 6,
+    text: "Made a great friend! (+10 Happiness)",
+    effects: { happiness: 10 }
+  },
+  {
+    id: "childcare_surprise",
+    category: "family",
+    weight: 7,
+    conditions: { minDependents: 1 },
+    text: "Childcare costs jumped (+$6,000 annual expenses, -8 Happiness)",
+    effects: { annualExpenses: 6000, happiness: -8 }
+  },
+  {
+    id: "family_support",
+    category: "family",
+    weight: 5,
+    conditions: { minDependents: 1 },
+    text: "Family support made life easier (+12 Happiness, +5 Health)",
+    effects: { happiness: 12, health: 5 }
+  },
+  {
+    id: "car_repair",
+    category: "housing",
+    weight: 6,
+    text: "Car accident repair costs (-$5,000, -10 Happiness)",
+    effects: { savings: -5000, happiness: -10 }
+  },
+  {
+    id: "home_repair",
+    category: "housing",
+    weight: 7,
+    conditions: { minHousingDebt: 50000 },
+    text: "Major home repair (-$18,000, -8 Happiness)",
+    effects: { savings: -18000, happiness: -8 }
+  },
+  {
+    id: "neighborhood_growth",
+    category: "housing",
+    weight: 4,
+    conditions: { minHousingDebt: 50000 },
+    text: "Neighborhood values rose (+$25,000 investments, +5 Happiness)",
+    effects: { investments: 25000, happiness: 5 }
+  },
+  {
+    id: "business_windfall",
+    category: "business",
+    weight: 6,
+    conditions: { lifePath: "Business" },
+    text: "Business windfall! (+$45,000 savings, +10 Happiness)",
+    effects: { savings: 45000, happiness: 10 }
+  },
+  {
+    id: "business_setback",
+    category: "business",
+    weight: 7,
+    conditions: { minBusinessDebt: 1 },
+    text: "Business setback added pressure (+$20,000 business debt, -10 Happiness)",
+    effects: { businessDebt: 20000, happiness: -10 }
+  },
+  {
+    id: "lean_operations",
+    category: "business",
+    weight: 4,
+    conditions: { lifePath: "Business", minAnnualExpenses: 15000 },
+    text: "Lean operations paid off (-$8,000 annual expenses, +8 Happiness)",
+    effects: { annualExpenses: -8000, happiness: 8 }
+  },
+  {
+    id: "market_boom",
+    category: "investment",
+    weight: 8,
+    conditions: { minInvestments: 1 },
+    text: "Stock market boom! (+$30,000 investments, +10 Happiness)",
+    effects: { investments: 30000, happiness: 10 }
+  },
+  {
+    id: "market_crash",
+    category: "investment",
+    weight: 7,
+    conditions: { minInvestments: 25000 },
+    text: "Market crash hit your portfolio (-$25,000 investments, -15 Happiness)",
+    effects: { investments: -25000, happiness: -15 }
+  },
+  {
+    id: "dividend_income",
+    category: "investment",
+    weight: 5,
+    conditions: { minInvestments: 50000 },
+    text: "Dividend income arrived (+$12,000 savings)",
+    effects: { savings: 12000 }
+  }
 ];
 
 // ─── Questions ─────────────────────────────────────────────────────────────
@@ -396,6 +571,144 @@ function getDebtEffect(source) {
     + (source.consumerDebt || 0);
 }
 
+function getEventEffects(event) {
+  return event?.effects || event || {};
+}
+
+function getEventKey(event, index) {
+  return event?.id || index;
+}
+
+function getEventCategoryLabel(event) {
+  const labels = {
+    financial: "Financial",
+    health: "Health",
+    career: "Career",
+    family: "Family",
+    housing: "Home & Transport",
+    business: "Business",
+    investment: "Investment"
+  };
+  return labels[event?.category] || "Life";
+}
+
+function conditionMeetsPath(requiredPath) {
+  if (!requiredPath) return true;
+  return Array.isArray(requiredPath)
+    ? requiredPath.includes(lifePath)
+    : lifePath === requiredPath;
+}
+
+function eventApplies(event) {
+  const c = event.conditions || {};
+  const totalDebt = getTotalDebt();
+  const currentConsumerDebt = getConsumerDebtTotal();
+
+  return conditionMeetsPath(c.lifePath)
+    && (c.minAge === undefined || age >= c.minAge)
+    && (c.maxAge === undefined || age <= c.maxAge)
+    && (c.minHealth === undefined || health >= c.minHealth)
+    && (c.maxHealth === undefined || health <= c.maxHealth)
+    && (c.minHappiness === undefined || happiness >= c.minHappiness)
+    && (c.maxHappiness === undefined || happiness <= c.maxHappiness)
+    && (c.minSalary === undefined || salary >= c.minSalary)
+    && (c.maxSalary === undefined || salary <= c.maxSalary)
+    && (c.minSavings === undefined || savings >= c.minSavings)
+    && (c.maxSavings === undefined || savings <= c.maxSavings)
+    && (c.minInvestments === undefined || investments >= c.minInvestments)
+    && (c.maxInvestments === undefined || investments <= c.maxInvestments)
+    && (c.minTotalDebt === undefined || totalDebt >= c.minTotalDebt)
+    && (c.maxTotalDebt === undefined || totalDebt <= c.maxTotalDebt)
+    && (c.minStudentDebt === undefined || studentDebt >= c.minStudentDebt)
+    && (c.minHousingDebt === undefined || housingDebt >= c.minHousingDebt)
+    && (c.minBusinessDebt === undefined || businessDebt >= c.minBusinessDebt)
+    && (c.minConsumerDebt === undefined || currentConsumerDebt >= c.minConsumerDebt)
+    && (c.minAnnualExpenses === undefined || annualExpenses >= c.minAnnualExpenses)
+    && (c.maxAnnualExpenses === undefined || annualExpenses <= c.maxAnnualExpenses)
+    && (c.minDependents === undefined || dependents >= c.minDependents)
+    && (c.maxDependents === undefined || dependents <= c.maxDependents)
+    && (c.maritalStatus === undefined || maritalStatus === c.maritalStatus)
+    && (c.careerIncludes === undefined || career.toLowerCase().includes(String(c.careerIncludes).toLowerCase()));
+}
+
+function getEventWeight(event) {
+  let weight = event.weight || 1;
+  const totalDebt = getTotalDebt();
+  const expenseRatio = salary > 0 ? annualExpenses / salary : (annualExpenses > 0 ? 2 : 0);
+
+  if (event.category === "health") {
+    if (health < 50) weight *= 2.2;
+    else if (health < 75) weight *= 1.45;
+  }
+
+  if (event.category === "financial") {
+    if (totalDebt > 150000) weight *= 1.45;
+    if (expenseRatio > 0.6) weight *= 1.35;
+  }
+
+  if (event.category === "career") {
+    if (salary >= 80000) weight *= 1.35;
+    if (happiness < 65) weight *= 1.15;
+  }
+
+  if (event.category === "family" && dependents > 0) {
+    weight *= 1 + Math.min(0.75, dependents * 0.25);
+  }
+
+  if (event.category === "housing" && (housingDebt > 0 || consumerDebt > 0)) {
+    weight *= 1.35;
+  }
+
+  if (event.category === "business" && (lifePath === "Business" || businessDebt > 0)) {
+    weight *= 1.8;
+  }
+
+  if (event.category === "investment" && investments > 0) {
+    weight *= 1.3 + Math.min(0.9, investments / 200000);
+  }
+
+  return Math.max(0.1, weight);
+}
+
+function getLifeEventChance() {
+  const totalDebt = getTotalDebt();
+  const expenseRatio = salary > 0 ? annualExpenses / salary : (annualExpenses > 0 ? 2 : 0);
+  let chance = 0.12;
+
+  if (questionsSinceLastEvent >= 3) chance += 0.18;
+  if (totalDebt > 50000) chance += 0.06;
+  if (totalDebt > 200000) chance += 0.06;
+  if (health < 60) chance += 0.08;
+  if (investments > 0) chance += 0.04;
+  if (lifePath === "Business" || businessDebt > 0) chance += 0.05;
+  if (dependents > 0) chance += 0.04;
+  if (expenseRatio > 0.6) chance += 0.05;
+
+  return Math.max(0.05, Math.min(0.55, chance));
+}
+
+function pickWeightedEvent(candidates) {
+  const totalWeight = candidates.reduce((sum, item) => sum + item.weight, 0);
+  let roll = Math.random() * totalWeight;
+
+  for (const item of candidates) {
+    roll -= item.weight;
+    if (roll <= 0) return item;
+  }
+
+  return candidates[candidates.length - 1] || null;
+}
+
+function isNegativeEvent(event) {
+  const effects = getEventEffects(event);
+  return (effects.savings || 0) < 0
+    || (effects.investments || 0) < 0
+    || getDebtEffect(effects) > 0
+    || (effects.annualExpenses || 0) > 0
+    || (effects.health || 0) < 0
+    || (effects.happiness || 0) < 0;
+}
+
 function payDownDebtFromSavings() {
   const debtBuckets = ["consumerDebt", "legacyDebt", "studentDebt", "businessDebt", "housingDebt"];
   debtBuckets.forEach(bucket => {
@@ -745,9 +1058,8 @@ function handleNextClick() {
   // Life event logic — improved frequency & no-repeat
   questionsSinceLastEvent++;
   const shouldTrigger =
-    (questionsSinceLastEvent >= 3 && decisionsMade % 3 === 0) ||
-    (questionsSinceLastEvent >= 3 && Math.random() < 0.15) ||
-    (questionsSinceLastEvent >= 2 && (getTotalDebt() > 50000 || health < 50) && Math.random() < 0.4);
+    questionsSinceLastEvent >= 2 &&
+    (decisionsMade % 3 === 0 || Math.random() < getLifeEventChance());
 
   if (shouldTrigger) triggerRandomLifeEvent();
 
@@ -764,17 +1076,24 @@ function handleNextClick() {
 
 // ─── Life Events ────────────────────────────────────────────────────────────
 function triggerRandomLifeEvent() {
-  // Pick an event not recently used
-  const available = lifeEvents
-    .map((_, i) => i)
-    .filter(i => !recentEventIndices.includes(i));
+  const candidates = lifeEvents
+    .map((event, index) => ({
+      event,
+      index,
+      key: getEventKey(event, index),
+      weight: getEventWeight(event)
+    }))
+    .filter(item => eventApplies(item.event));
 
-  const pool  = available.length > 0 ? available : lifeEvents.map((_, i) => i);
-  const idx   = pool[Math.floor(Math.random() * pool.length)];
-  const event = lifeEvents[idx];
+  const freshCandidates = candidates.filter(item => !recentEventIndices.includes(item.key));
+  const pool = freshCandidates.length > 0 ? freshCandidates : candidates;
+  const selected = pickWeightedEvent(pool);
+  if (!selected) return;
+
+  const event = selected.event;
 
   // Update recency window (keep last 3)
-  recentEventIndices.push(idx);
+  recentEventIndices.push(selected.key);
   if (recentEventIndices.length > 3) recentEventIndices.shift();
 
   lifeEventHistory.push(event);
@@ -785,7 +1104,7 @@ function triggerRandomLifeEvent() {
   if (gsap.isTweening(eventBox)) return;
 
   eventBox.style.display = "block";
-  eventText.innerHTML = `<strong>${event.text}</strong>`;
+  eventText.innerHTML = `<strong>${event.text}</strong><br><span>${getEventCategoryLabel(event)} event</span>`;
 
   gsap.timeline()
     .fromTo(eventBox, { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" })
@@ -797,9 +1116,10 @@ function triggerRandomLifeEvent() {
 }
 
 function applyLifeEventEffects(event) {
-  applyFinancialEffects(event);
-  health    += event.health    || 0;
-  happiness += event.happiness || 0;
+  const effects = getEventEffects(event);
+  applyFinancialEffects(effects);
+  health    += effects.health    || 0;
+  happiness += effects.happiness || 0;
   health    = Math.max(0, Math.min(100, health));
   happiness = Math.max(0, Math.min(100, happiness));
   updateStatus();
@@ -980,13 +1300,9 @@ function showSummary() {
   const lifeEventsList = lifeEventHistory.length > 0
     ? `<ul>${lifeEventHistory.map(ev => {
         if (!ev?.text) return "";
-        const bad  = (ev.savings || 0) < 0
-          || (ev.investments || 0) < 0
-          || getDebtEffect(ev) > 0
-          || (ev.annualExpenses || 0) > 0
-          || (ev.health || 0) < 0
-          || (ev.happiness || 0) < 0;
-        return `<li class="${bad ? "negative" : "positive"}">${bad ? "❌" : "✅"} ${ev.text}</li>`;
+        const bad = isNegativeEvent(ev);
+        const category = getEventCategoryLabel(ev);
+        return `<li class="${bad ? "negative" : "positive"}">${bad ? "❌" : "✅"} <span class="event-category">${category}</span> ${ev.text}</li>`;
       }).join("")}</ul>`
     : "<p style='opacity:0.6'>No major life events happened.</p>";
 
